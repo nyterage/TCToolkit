@@ -91,6 +91,14 @@ def switch_primary():
                     return "agility"
                 case "restoration":
                     return "intellect"
+        case "evoker":
+            match specilization:
+                case "augmentation":
+                    return "intellect"
+                case "devastation":
+                    return "intellect"
+                case "preservation":
+                    return "intellect"
         case "hunter":
             match specilization:
                 case "beast_mastery":
