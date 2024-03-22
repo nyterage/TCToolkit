@@ -247,8 +247,13 @@ for i in stats:
         case "intellect":
             int_input_string = main_string+i+" reforge_plot_output_file="+data_dir+i+".csv"
 
+layout = go.Layout(
+    autosize=False,
+    width=2000,
+    height=1000
+)
 
-fig=go.Figure()
+fig=go.Figure( layout=layout )
 
 def get_old_data( stat ):
     if( stat == 'haste' ):
