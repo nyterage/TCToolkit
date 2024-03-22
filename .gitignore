@@ -161,3 +161,8 @@ cython_debug/
 
 # Simc
 simc/
+
+# Output Directories
+sim_stats/output
+sim_stats/profiles
+sim_stats/raw_data

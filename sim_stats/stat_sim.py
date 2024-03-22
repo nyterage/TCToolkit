@@ -38,10 +38,10 @@ temporary_enchant_mh = "howling_rune_3"
 temporary_enchant_oh = "howling_rune_3"
 
 # Simulation Variables
-sim_haste = False
-sim_crit = False
-sim_mastery = False
-sim_vers = False
+sim_haste = True
+sim_crit = True
+sim_mastery = True
+sim_vers = True
 sim_primary = False
 
 # Graph Variables
@@ -50,10 +50,10 @@ graph_haste = True
 graph_crit = True
 graph_mastery = True
 graph_vers = True
-graph_primary = True
+graph_primary = False
 # Only One of these two should be enabled at any one point in time!
-graph_dps_per_point = False # Probably the only useful graph of the bunch
-graph_dps = True # Plots DPS vs Rating, same thing youd get in the simc html output but bigger!
+graph_dps_per_point = True # Probably the only useful graph of the bunch
+graph_dps = False # Plots DPS vs Rating, same thing youd get in the simc html output but bigger!
 
 # --------------------------------------------------------------------------------------
 # Code Starts Here, dont touch anything below this line unless you know what youre doing
