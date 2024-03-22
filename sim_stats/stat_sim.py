@@ -57,9 +57,9 @@ graph_primary = False
 graph_dps_per_point = True # Probably the only useful graph of the bunch
 graph_dps = False # Plots DPS vs Rating, same thing youd get in the simc html output but bigger!
 
-# --------------------------------------------------------------------------------------
-# Code Starts Here, dont touch anything below this line unless you know what youre doing
-# --------------------------------------------------------------------------------------
+#|----------------------------------------------------------------------------------------|
+#| Code Starts Here, dont touch anything below this line unless you know what youre doing |
+#|----------------------------------------------------------------------------------------|
 # Directories
 profile_dir = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "profiles")
 simc_dir = os.path.join(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'simc')))
@@ -221,10 +221,6 @@ with open(os.path.join(profile_dir, f"{sim_class}_{specilization}_input.simc"), 
 
 profile = f"{sim_class}_{specilization}_input.simc"
 
-stats = ["haste", "crit", "mastery", "versatility"]
-if( sim_primary ):
-    stats.append(switch_primary())
-
 match platform.system():
     case "Windows":
         main_string = os.path.join(simc_dir, "simc.exe") + " " + os.path.join(profile_dir, profile) + " dps_plot_stat="
@@ -233,22 +229,29 @@ match platform.system():
     case "Darwin":
         main_string = os.path.join(simc_dir, "simc") + " " + os.path.join(profile_dir, profile) + " dps_plot_stat="
 
-for i in stats:
-    match i:
-        case "haste":
-            haste_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
-        case "crit":
-            crit_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
-        case "mastery":
-            mastery_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
-        case "versatility":
-            vers_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
-        case "strength":
-            str_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
-        case "agility":
-            agi_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
-        case "intellect":
-            int_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
+sim_stats = []
+dont_sim_stats = []
+sim_strings = {}
+if( sim_haste ):
+    sim_stats.append('haste')
+else:
+    dont_sim_stats.append('haste')
+if( sim_crit ):
+    sim_stats.append('crit')
+else:
+    dont_sim_stats.append('crit')
+if( sim_mastery ):
+    sim_stats.append('mastery')
+else:
+    dont_sim_stats.append('mastery')
+if( sim_vers ):
+    sim_stats.append('versatility')
+else:
+    dont_sim_stats.append('versatility')
+if( sim_primary ):
+    sim_stats.append(switch_primary())
+else:
+    dont_sim_stats.append(switch_primary())
 
 layout = go.Layout(
     autosize=False,
@@ -259,44 +262,13 @@ layout = go.Layout(
 fig=go.Figure( layout=layout )
 
 def get_old_data( stat ):
-    if( stat == 'haste' ):
-        if ( sim_haste == False ):
-            return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
-    if( stat == 'crit' ):
-        if ( sim_crit == False ):
-            return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
-    if( stat == 'mastery' ):
-        if ( sim_mastery == False ):
-            return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
-    if( stat == 'versatility' ):
-        if ( sim_vers == False ):
-            return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
-    if( stat == 'strength' ):
-        if ( sim_primary == False ):
-            return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
-    if( stat == 'agility' ):
-        if ( sim_primary == False ):
-            return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
-    if( stat == 'intellect' ):
-        if ( sim_primary == False ):
-            return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
+    return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
         
 def get_stat_name( stat ):
-    match stat:
-        case "haste":
-            stat_name = "haste_rating"
-        case "crit":
-            stat_name = "crit_rating"
-        case "mastery":
-            stat_name = "mastery_rating"
-        case "versatility":
-            stat_name = "versatility_rating"
-        case "strength":
-            stat_name = "strength"
-        case "agility":
-            stat_name = "agility"
-        case "intellect":
-            stat_name = "intellect"
+    if( switch_primary() == stat ):
+        stat_name = stat
+    else:
+        stat_name = f"{stat}_rating"
     return stat_name
     
 def generate_extra_data( data, stat ):
@@ -326,75 +298,16 @@ def generate_chart():
         fig.show()
 
 # Run the sim
-if( sim_haste ):
-    print(haste_input_string.split())
-    return_haste = subprocess.call(haste_input_string.split())
-    if( return_haste == 0 ):
-        haste_input=pd.read_csv(os.path.join(data_dir, f'{sim_class}_{specilization}_haste.csv'), skiprows=1)
-        if( graph_haste == True ):
-            generate_extra_data( haste_input, 'haste')
-if( sim_crit ):
-    print(crit_input_string)
-    return_crit = subprocess.call(crit_input_string.split())
-    if( return_crit == 0 ):
-        crit_input=pd.read_csv(os.path.join(data_dir, f'{sim_class}_{specilization}_crit.csv'), skiprows=1)
-        if( graph_crit == True ):
-            generate_extra_data( crit_input, 'crit')
-if( sim_mastery ):
-    print(mastery_input_string)
-    return_mastery = subprocess.call(mastery_input_string.split())
-    if( return_mastery == 0 ):
-        mastery_input=pd.read_csv(os.path.join(data_dir, f'{sim_class}_{specilization}_mastery.csv'), skiprows=1)
-        if( graph_mastery == True ):
-            generate_extra_data( mastery_input, 'mastery')
-if( sim_vers ):
-    print(vers_input_string)
-    return_vers = subprocess.call(vers_input_string.split())
-    if( return_vers == 0 ):
-        vers_input=pd.read_csv(os.path.join(data_dir, f'{sim_class}_{specilization}_versatility.csv'), skiprows=1)
-        if( graph_vers == True ):
-            generate_extra_data( vers_input, 'versatility')
-if( sim_primary ):
-    if( switch_primary() == "strength" ):
-        print(str_input_string)
-        return_str = subprocess.call(str_input_string.split())
-        if( return_str == 0 ):
-            str_input=pd.read_csv(os.path.join(data_dir, f'{sim_class}_{specilization}_strength.csv'), skiprows=1)
-            if( graph_primary == True ):
-                generate_extra_data( str_input, 'strength')
-    if( switch_primary() == "agility" ):
-        print(agi_input_string)
-        return_agi = subprocess.call(agi_input_string.split())
-        if( return_agi == 0 ):
-            agi_input=pd.read_csv(os.path.join(data_dir, f'{sim_class}_{specilization}_agility.csv'), skiprows=1)
-            if( graph_primary == True ):
-                generate_extra_data( agi_input, 'agility')
-    if( switch_primary() == "intellect" ):
-        print(int_input_string)
-        return_int = subprocess.call(int_input_string.split())
-        if( return_int == 0 ):
-            int_input=pd.read_csv(os.path.join(data_dir, f'{sim_class}_{specilization}_intellect.csv'), skiprows=1)
-            if( graph_primary == True ):
-                generate_extra_data( int_input, 'intellect')
+for i in sim_stats:
+    sim_strings[i] = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
+    print(sim_strings[i])
+    return_stat = subprocess.call(sim_strings[i].split())
+    if( return_stat == 0 ):
+        sim_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv"), skiprows=1)
+        if( graph_dps_per_point == True or graph_dps == True ):
+            generate_extra_data( sim_input, i )
+
 if( generate_charts ):
-    if( sim_haste == False ):
-        if( graph_haste == True ):
-            generate_extra_data( get_old_data('haste'), 'haste' )
-    if( sim_crit == False ):
-        if( graph_crit == True ):
-            generate_extra_data( get_old_data('crit'), 'crit' )
-    if( sim_mastery == False ):
-        if( graph_mastery == True ):
-            generate_extra_data( get_old_data('mastery'), 'mastery' )
-    if( sim_vers == False ):
-        if( graph_vers == True ):
-            generate_extra_data( get_old_data('versatility'), 'versatility' )
-    if( sim_primary == False ):
-        if( graph_primary == True ):
-            if( switch_primary() == "strength" ):
-                generate_extra_data( get_old_data('strength'), 'strength' )
-            if( switch_primary() == "agility" ):
-                generate_extra_data( get_old_data('agility'), 'agility' )
-            if( switch_primary() == "intellect" ):
-                generate_extra_data( get_old_data('intellect'), 'intellect' )
+    for i in dont_sim_stats:
+        generate_extra_data( get_old_data(i), i )
     generate_chart()
