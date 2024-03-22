@@ -14,8 +14,8 @@ tar_err = 0.05 # Sims target Error
 iter = 15000 # Max number of Iterations to run, will stop at this number if target error has not been reached
 pos = 1 # Plot only positive values from the current rating, set to 0 to generate both positive and negative values
 plot_step = 10 # Difference in Rating between each plot point
-plot_points = 1000 # Number of plot points to generate
-rolling_avg = 10 # Rolling average for DPS per point, set to 1 to disable rolling average
+plot_points = 2 # Number of plot points to generate
+rolling_avg = 1 # Rolling average for DPS per point, set to 1 to disable rolling average
 report_details = 1
 optimal_raid = 1
 
@@ -29,6 +29,7 @@ base_haste_rating = 0 # Set to 0 to set haste in the input ptofile to 0, otherwi
 base_crit_rating = 0 # Set to 0 to set crit in the input ptofile to 0, otherwise set whatever value you wish
 base_mastery_rating = 0 # Set to 0 to set mastery in the input ptofile to 0, otherwise set whatever value you wish
 base_versatility_rating = 0 # Set to 0 to set versatility in the input ptofile to 0, otherwise set whatever value you wish
+base_primary_rating = 0 # Set to 0 to set primary stat in the input ptofile to 0, otherwise set whatever value you wish
 potion = "disabled"
 food = "disabled"
 flask = "disabled"
@@ -43,7 +44,7 @@ sim_haste = True
 sim_crit = True
 sim_mastery = True
 sim_vers = True
-sim_primary = False
+sim_primary = True
 
 # Graph Variables
 generate_charts = True
@@ -51,7 +52,7 @@ graph_haste = True
 graph_crit = True
 graph_mastery = True
 graph_vers = True
-graph_primary = False
+graph_primary = True
 # Only One of these two should be enabled at any one point in time!
 graph_dps_per_point = True # Probably the only useful graph of the bunch
 graph_dps = False # Plots DPS vs Rating, same thing youd get in the simc html output but bigger!
@@ -190,7 +191,7 @@ sim_mod.append("iterations="+str(iter)+"\n")
 sim_mod.append("html=" + os.path.join(output_dir, "output.html") + "\n")
 sim_mod.append("json2=" + os.path.join(output_dir, "output.json") + "\n")
 
-with open(os.path.join(profile_dir, "input.simc"), "w+") as sim_profile:
+with open(os.path.join(profile_dir, f"{sim_class}_{specilization}_input.simc"), "w+") as sim_profile:
     for i in sim_mod:
         sim_profile.write(i)
     sim_profile.write("\n")
@@ -209,6 +210,8 @@ with open(os.path.join(profile_dir, "input.simc"), "w+") as sim_profile:
         profile_mod.append("gear_haste_rating="+str(base_haste_rating)+"\n")
         profile_mod.append("gear_mastery_rating="+str(base_mastery_rating)+"\n")
         profile_mod.append("gear_versatility_rating="+str(base_versatility_rating)+"\n")
+        if( sim_primary ):
+            profile_mod.append("gear_"+switch_primary()+"="+str(base_primary_rating)+"\n")
         if( tier_set_bonus == False ):
             profile_mod.append("set_bonus=tier"+str(tier_set_number)+"_2pc="+str(tier_set_bonus_2pc)+"\n")
             profile_mod.append("set_bonus=tier"+str(tier_set_number)+"_4pc="+str(tier_set_bonus_4pc)+"\n")
@@ -216,7 +219,7 @@ with open(os.path.join(profile_dir, "input.simc"), "w+") as sim_profile:
         for i in profile_mod:
             sim_profile.write(i)
 
-profile = "input.simc"
+profile = f"{sim_class}_{specilization}_input.simc"
 
 stats = ["haste", "crit", "mastery", "versatility"]
 if( sim_primary ):
@@ -233,19 +236,19 @@ match platform.system():
 for i in stats:
     match i:
         case "haste":
-            haste_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{i}.csv")
+            haste_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
         case "crit":
-            crit_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{i}.csv")
+            crit_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
         case "mastery":
-            mastery_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{i}.csv")
+            mastery_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
         case "versatility":
-            vers_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{i}.csv")
+            vers_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
         case "strength":
-            str_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{i}.csv")
+            str_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
         case "agility":
-            agi_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{i}.csv")
+            agi_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
         case "intellect":
-            int_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{i}.csv")
+            int_input_string = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
 
 layout = go.Layout(
     autosize=False,
@@ -258,25 +261,25 @@ fig=go.Figure( layout=layout )
 def get_old_data( stat ):
     if( stat == 'haste' ):
         if ( sim_haste == False ):
-            return pd.read_csv(os.path.join(data_dir, f"{stat}.csv"), skiprows=1)
+            return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
     if( stat == 'crit' ):
         if ( sim_crit == False ):
-            return pd.read_csv(os.path.join(data_dir, f"{stat}.csv"), skiprows=1)
+            return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
     if( stat == 'mastery' ):
         if ( sim_mastery == False ):
-            return pd.read_csv(os.path.join(data_dir, f"{stat}.csv"), skiprows=1)
+            return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
     if( stat == 'versatility' ):
         if ( sim_vers == False ):
-            return pd.read_csv(os.path.join(data_dir, f"{stat}.csv"), skiprows=1)
+            return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
     if( stat == 'strength' ):
         if ( sim_primary == False ):
-            return pd.read_csv(os.path.join(data_dir, f"{stat}.csv"), skiprows=1)
+            return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
     if( stat == 'agility' ):
         if ( sim_primary == False ):
-            return pd.read_csv(os.path.join(data_dir, f"{stat}.csv"), skiprows=1)
+            return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
     if( stat == 'intellect' ):
         if ( sim_primary == False ):
-            return pd.read_csv(os.path.join(data_dir, f"{stat}.csv"), skiprows=1)
+            return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
         
 def get_stat_name( stat ):
     match stat:
@@ -301,8 +304,8 @@ def generate_extra_data( data, stat ):
     data['Rating Change'] = ( data[get_stat_name(stat)].diff() )
     data['DPS per point'] = data['DPS change'] / data['Rating Change']
     data['Rolling DPS per point'] = data['DPS per point'].rolling(window=rolling_avg).mean()
-    data.to_csv(os.path.join(output_dir, f"{stat}_mod.csv"), index=False)
-    new_data = pd.read_csv(os.path.join(output_dir, f"{stat}_mod.csv"))
+    data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{stat}_mod.csv"), index=False)
+    new_data = pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{stat}_mod.csv"))
     add_data(new_data, stat)
 
 def add_data( data, stat ):
@@ -310,16 +313,16 @@ def add_data( data, stat ):
         fig.add_trace(go.Scatter(x=data[get_stat_name(stat)], y=data['Rolling DPS per point'], mode='lines+markers', name=get_stat_name(stat)))
     if( graph_dps == True ):
         fig.add_trace(go.Scatter(x=data[get_stat_name(stat)], y=data[' DPS'], mode='lines+markers', name=get_stat_name(stat)))
-    data.describe(include='all').to_csv(os.path.join(output_dir, f"{stat}_data_info.csv"), index=True)
+    data.describe(include='all').to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{stat}_data_info.csv"), index=True)
 
 def generate_chart():
     if( graph_dps_per_point == True ):
         fig.update_layout(title='DPS per point vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS per point')
-        fig.write_image(output_dir+'dps_per_point.png')
+        fig.write_image(output_dir+f'{sim_class}_{specilization}_dps_per_point.png')
         fig.show()
     if( graph_dps == True ):
         fig.update_layout(title='DPS vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS')
-        fig.write_image(output_dir+'dps.png')
+        fig.write_image(output_dir+f'{sim_class}_{specilization}_dps.png')
         fig.show()
 
 # Run the sim
@@ -327,28 +330,28 @@ if( sim_haste ):
     print(haste_input_string.split())
     return_haste = subprocess.call(haste_input_string.split())
     if( return_haste == 0 ):
-        haste_input=pd.read_csv(os.path.join(data_dir, 'haste.csv'), skiprows=1)
+        haste_input=pd.read_csv(os.path.join(data_dir, f'{sim_class}_{specilization}_haste.csv'), skiprows=1)
         if( graph_haste == True ):
             generate_extra_data( haste_input, 'haste')
 if( sim_crit ):
     print(crit_input_string)
     return_crit = subprocess.call(crit_input_string.split())
     if( return_crit == 0 ):
-        crit_input=pd.read_csv(os.path.join(data_dir, 'crit.csv'), skiprows=1)
+        crit_input=pd.read_csv(os.path.join(data_dir, f'{sim_class}_{specilization}_crit.csv'), skiprows=1)
         if( graph_crit == True ):
             generate_extra_data( crit_input, 'crit')
 if( sim_mastery ):
     print(mastery_input_string)
     return_mastery = subprocess.call(mastery_input_string.split())
     if( return_mastery == 0 ):
-        mastery_input=pd.read_csv(os.path.join(data_dir, 'mastery.csv'), skiprows=1)
+        mastery_input=pd.read_csv(os.path.join(data_dir, f'{sim_class}_{specilization}_mastery.csv'), skiprows=1)
         if( graph_mastery == True ):
             generate_extra_data( mastery_input, 'mastery')
 if( sim_vers ):
     print(vers_input_string)
     return_vers = subprocess.call(vers_input_string.split())
     if( return_vers == 0 ):
-        vers_input=pd.read_csv(os.path.join(data_dir, 'versatility.csv'), skiprows=1)
+        vers_input=pd.read_csv(os.path.join(data_dir, f'{sim_class}_{specilization}_versatility.csv'), skiprows=1)
         if( graph_vers == True ):
             generate_extra_data( vers_input, 'versatility')
 if( sim_primary ):
@@ -356,21 +359,21 @@ if( sim_primary ):
         print(str_input_string)
         return_str = subprocess.call(str_input_string.split())
         if( return_str == 0 ):
-            str_input=pd.read_csv(os.path.join(data_dir, 'strength.csv'), skiprows=1)
+            str_input=pd.read_csv(os.path.join(data_dir, f'{sim_class}_{specilization}_strength.csv'), skiprows=1)
             if( graph_primary == True ):
                 generate_extra_data( str_input, 'strength')
     if( switch_primary() == "agility" ):
         print(agi_input_string)
         return_agi = subprocess.call(agi_input_string.split())
         if( return_agi == 0 ):
-            agi_input=pd.read_csv(os.path.join(data_dir, 'agility.csv'), skiprows=1)
+            agi_input=pd.read_csv(os.path.join(data_dir, f'{sim_class}_{specilization}_agility.csv'), skiprows=1)
             if( graph_primary == True ):
                 generate_extra_data( agi_input, 'agility')
     if( switch_primary() == "intellect" ):
         print(int_input_string)
         return_int = subprocess.call(int_input_string.split())
         if( return_int == 0 ):
-            int_input=pd.read_csv(os.path.join(data_dir, 'intellect.csv'), skiprows=1)
+            int_input=pd.read_csv(os.path.join(data_dir, f'{sim_class}_{specilization}_intellect.csv'), skiprows=1)
             if( graph_primary == True ):
                 generate_extra_data( int_input, 'intellect')
 if( generate_charts ):
