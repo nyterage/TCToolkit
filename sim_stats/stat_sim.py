@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import os
 import sys
+import platform
 
 # Input Variables
 input_profile = "unh_tst.simc" # This should be a bare profile, only character info and gear
@@ -16,7 +17,7 @@ plot_step = 10 # Difference in Rating between each plot point
 plot_points = 1000 # Number of plot points to generate
 rolling_avg = 10 # Rolling average for DPS per point, set to 1 to disable rolling average
 report_details = 1
-optimal_raid = 0
+optimal_raid = 1
 
 # Profile Modifications
 modify_base_profile = True # Set to False if you dont want to modify the base profile with the values below
@@ -220,7 +221,14 @@ profile = "input.simc"
 stats = ["haste", "crit", "mastery", "versatility"]
 if( sim_primary ):
     stats.append(switch_primary())
-main_string = simc_dir+"\simc.exe "+profile_dir+profile+" dps_plot_stat="
+
+match platform.system():
+    case "Windows":
+        main_string = simc_dir+"\\simc.exe "+profile_dir+profile+" dps_plot_stat="
+    case "Linux":
+        main_string = simc_dir+"/simc "+profile_dir+profile+" dps_plot_stat="
+    case "Darwin":
+        main_string = simc_dir+"/simc "+profile_dir+profile+" dps_plot_stat="
 
 for i in stats:
     match i:
@@ -300,8 +308,14 @@ def add_data( data, stat ):
     data.describe(include='all').to_csv(output_dir+stat+'_data_info.csv', index=True)
 
 def generate_chart():
-    fig.update_layout(title='DPS per point vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS per point')
-    fig.show()
+    if( graph_dps_per_point == True ):
+        fig.update_layout(title='DPS per point vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS per point')
+        fig.write_image(output_dir+'dps_per_point.png')
+        fig.show()
+    if( graph_dps == True ):
+        fig.update_layout(title='DPS vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS')
+        fig.write_image(output_dir+'dps.png')
+        fig.show()
 
 # Run the sim
 if( sim_haste ):
