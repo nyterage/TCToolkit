@@ -14,8 +14,8 @@ tar_err = 0.05 # Sims target Error
 iter = 15000 # Max number of Iterations to run, will stop at this number if target error has not been reached
 pos = 1 # Plot only positive values from the current rating, set to 0 to generate both positive and negative values
 plot_step = 10 # Difference in Rating between each plot point
-plot_points = 2 # Number of plot points to generate
-rolling_avg = 1 # Rolling average for DPS per point, set to 1 to disable rolling average
+plot_points = 1000 # Number of plot points to generate
+rolling_avg = 10 # Rolling average for DPS per point, set to 1 to disable rolling average
 report_details = 1
 optimal_raid = 1
 
@@ -44,7 +44,7 @@ sim_haste = True
 sim_crit = True
 sim_mastery = True
 sim_vers = True
-sim_primary = True
+sim_primary = False
 
 # Graph Variables
 generate_charts = True
@@ -52,7 +52,7 @@ graph_haste = True
 graph_crit = True
 graph_mastery = True
 graph_vers = True
-graph_primary = True
+graph_primary = False
 # Only One of these two should be enabled at any one point in time!
 graph_dps_per_point = True # Probably the only useful graph of the bunch
 graph_dps = False # Plots DPS vs Rating, same thing youd get in the simc html output but bigger!
