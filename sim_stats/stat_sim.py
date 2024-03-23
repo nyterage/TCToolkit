@@ -27,8 +27,8 @@ optimal_raid = 1
 # To enable matrix sims, set the variable for the stat you want to scale up to True, this will then generate the dps/point value for all other stats #
 # Warning, matrix sims can take an extremely long time to run, especially if you have multiple stats enabled                                         #
 #----------------------------------------------------------------------------------------------------------------------------------------------------#
-matrix_step = 100 # Difference in Rating between each matrix point, applies to the main matrix stat (option below)
-matrix_points = 100 # Number of points to generate in the matrix, applies to the main matrix stat (option below)
+matrix_step = 200 # Difference in Rating between each matrix point, applies to the main matrix stat (option below)
+matrix_points = 50 # Number of points to generate in the matrix, applies to the main matrix stat (option below)
 matrix_secondary_step = 100 # Difference in Rating between each matrix point, applies to the secondary matrix stats
 matrix_secondary_points = 5 # Number of data points to generate in the matrix, applies to the secondary matrix stats. Will be averaged, higher numbers will increase accuracy but also increase compute time
 matrix_iter = 15000 # Max number of Iterations to run for the matrix sims, will stop at this number if target error has not been reached
@@ -526,24 +526,24 @@ def add_matrix_data( data, matrix_stat, stat ):
 
 def generate_chart():
     if( graph_dps_per_point == True ):
-        fig.update_layout(title=f'{fight_type_string} DPS per point vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS per point')
+        fig.update_layout(title=f'{fight_type_string} - {specilization} {sim_class} - DPS per point vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS per point')
         fig.write_image(os.path.join(chart_output_dir,f'{sim_class}_{specilization}_dps_per_point.png'))
         fig.show()
         fig.data = []
     if( graph_dps == True ):
-        fig.update_layout(title=f'{fight_type_string} DPS vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS')
+        fig.update_layout(title=f'{fight_type_string} - {specilization} {sim_class} - DPS vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS')
         fig.write_image(os.path.join(chart_output_dir,f'{sim_class}_{specilization}_dps.png'))
         fig.show()
         fig.data = []
 
 def generate_matrix_chart( stat ):
     if( graph_dps_per_point == True ):
-        fig.update_layout(title=f'{fight_type_string} DPS per point vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS per point')
+        fig.update_layout(title=f'{fight_type_string} - {specilization} {sim_class} - DPS per point vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS per point')
         fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_dps_per_point.png'))
         fig.show()
         fig.data = []
     if( graph_dps == True ):
-        fig.update_layout(title=f'{fight_type_string} DPS vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS')
+        fig.update_layout(title=f'{fight_type_string} - {specilization} {sim_class} - DPS vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS')
         fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_dps.png'))
         fig.show()
         fig.data = []
