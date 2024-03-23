@@ -526,24 +526,24 @@ def add_matrix_data( data, matrix_stat, stat ):
 
 def generate_chart():
     if( graph_dps_per_point == True ):
-        fig.update_layout(title=f'{fight_type_string} - {specilization} {sim_class} - DPS per point vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS per point')
+        fig.update_layout(title=f'{sim_duration} second {fight_type_string} - {specilization} {sim_class} - DPS per point vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS per point')
         fig.write_image(os.path.join(chart_output_dir,f'{sim_class}_{specilization}_dps_per_point.png'))
         fig.show()
         fig.data = []
     if( graph_dps == True ):
-        fig.update_layout(title=f'{fight_type_string} - {specilization} {sim_class} - DPS vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS')
+        fig.update_layout(title=f'{sim_duration} second {fight_type_string} - {specilization} {sim_class} - DPS vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS')
         fig.write_image(os.path.join(chart_output_dir,f'{sim_class}_{specilization}_dps.png'))
         fig.show()
         fig.data = []
 
 def generate_matrix_chart( stat ):
     if( graph_dps_per_point == True ):
-        fig.update_layout(title=f'{fight_type_string} - {specilization} {sim_class} - DPS per point vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS per point')
+        fig.update_layout(title=f'{sim_duration} second {fight_type_string} - {specilization} {sim_class} - DPS per point vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS per point')
         fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_dps_per_point.png'))
         fig.show()
         fig.data = []
     if( graph_dps == True ):
-        fig.update_layout(title=f'{fight_type_string} - {specilization} {sim_class} - DPS vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS')
+        fig.update_layout(title=f'{sim_duration} second {fight_type_string} - {specilization} {sim_class} - DPS vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS')
         fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_dps.png'))
         fig.show()
         fig.data = []
