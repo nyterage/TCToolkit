@@ -79,7 +79,7 @@ sim_crit_matrix = False
 sim_mastery_matrix = False
 sim_vers_matrix = False
 sim_primary_matrix = False
-generate_matrix_charts = True
+generate_matrix_charts = False
 # Enables or Disables the generation of these stats as "secondary" stats in the matrix.
 # e.g. disabling all but haste would generate charts for all primary stats, with as the haste secondary.
 # allows for mixing and matching for deeper exploration. 
@@ -511,9 +511,11 @@ def generate_chart():
     if( graph_dps_per_point == True ):
         fig.update_layout(title='DPS per point vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS per point')
         fig.write_image(os.path.join(chart_output_dir,f'{sim_class}_{specilization}_dps_per_point.png'))
+        fig.show()
     if( graph_dps == True ):
         fig.update_layout(title='DPS vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS')
         fig.write_image(os.path.join(chart_output_dir,f'{sim_class}_{specilization}_dps.png'))
+        fig.show()
 
 def generate_matrix_chart( stat ):
     if( graph_dps_per_point == True ):
