@@ -24,10 +24,10 @@ optimal_raid = 1
 # To enable matrix sims, set the variable for the stat you want to scale up to True, this will then generate the dps/point value for all other stats #
 # Warning, matrix sims can take an extremely long time to run, especially if you have multiple stats enabled                                         #
 #----------------------------------------------------------------------------------------------------------------------------------------------------#
-matrix_step = 20 # Difference in Rating between each matrix point, applies to the main matrix stat (option below)
-matrix_points = 10 # Number of points to generate in the matrix, applies to the main matrix stat (option below)
+matrix_step = 100 # Difference in Rating between each matrix point, applies to the main matrix stat (option below)
+matrix_points = 100 # Number of points to generate in the matrix, applies to the main matrix stat (option below)
 matrix_secondary_step = 100 # Difference in Rating between each matrix point, applies to the secondary matrix stats
-matrix_secondary_points = 3 # Number of points to generate in the matrix, applies to the secondary matrix stats
+matrix_secondary_points = 5 # Number of points to generate in the matrix, applies to the secondary matrix stats
 matrix_iter = "15000" # Max number of Iterations to run for the matrix sims, will stop at this number if target error has not been reached
 
 # Profile Modifications
@@ -62,9 +62,9 @@ generate_stat_charts = False
 # Enabling any of these will disable the normal stat scaling sims! compute time would be far too long.
 sim_haste_matrix = False
 sim_crit_matrix = False
-sim_mastery_matrix = False
-sim_vers_matrix = False
-sim_primary_matrix = False
+sim_mastery_matrix = True
+sim_vers_matrix = True
+sim_primary_matrix = True
 generate_matrix_charts = True
 
 # Graph Variables
@@ -277,6 +277,11 @@ primary_matrix_gen_stats = [ 'haste', 'crit', 'mastery', 'versatility']
 sim_matrix_stats = []
 dont_sim_matrix_stats = []
 matrix_stats = {}
+haste_data_added = 0
+crit_data_added = 0
+mastery_data_added = 0
+vers_data_added = 0
+primary_data_added = 0
 
 if( sim_haste_matrix ):
     for i in haste_matrix_gen_stats:
@@ -408,15 +413,16 @@ def generate_matrix_chart( stat ):
     if( graph_dps_per_point == True ):
         fig.update_layout(title=f'DPS per point vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS per point')
         fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_dps_per_point.png'))
+        fig.data = []
     if( graph_dps == True ):
         fig.update_layout(title=f'DPS vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS')
         fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_dps.png'))
+        fig.data = []
 
 
 def matrix_sim_finished( matrix_stat, stat ):
     new_data = pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_mod.csv"))
     add_matrix_data(new_data, matrix_stat, stat)
-    generate_matrix_chart( matrix_stat )
 
 # Run the sim
 for i in sim_stats:
@@ -437,8 +443,10 @@ for q in haste_matrix_stats:
             matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_haste_{q}.csv"), skiprows=1)
             if i == 0:
                 generate_matrix_data( matrix_input, 'haste', matrix_step, i, q )
-            else:
+            if i > 0:
                 append_matrix_data( matrix_input, 'haste', matrix_step, i, q )
+            if i == matrix_points:
+                matrix_sim_finished( 'haste', q )
 
 for q in crit_matrix_stats:
     for i in range(matrix_points):
@@ -449,8 +457,10 @@ for q in crit_matrix_stats:
             matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_crit_{q}.csv"), skiprows=1)
             if i == 0:
                 generate_matrix_data( matrix_input, 'crit', matrix_step, i, q )
-            else:
+            if i > 0:
                 append_matrix_data( matrix_input, 'crit', matrix_step, i, q )
+            if i == matrix_points:
+                matrix_sim_finished( 'crit', q )
 
 for q in mastery_matrix_stats:
     for i in range(matrix_points):
@@ -461,8 +471,10 @@ for q in mastery_matrix_stats:
             matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_mastery_{q}.csv"), skiprows=1)
             if i == 0:
                 generate_matrix_data( matrix_input, 'mastery', matrix_step, i, q )
-            else:
+            if i > 0:
                 append_matrix_data( matrix_input, 'mastery', matrix_step, i, q )
+            if i == matrix_points:
+                matrix_sim_finished( 'mastery', q )
 
 for q in vers_matrix_stats:
     for i in range(matrix_points):
@@ -473,8 +485,10 @@ for q in vers_matrix_stats:
             matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_versatility_{q}.csv"), skiprows=1)
             if i == 0:
                 generate_matrix_data( matrix_input, 'versatility', matrix_step, i, q )
-            else:
+            if i > 0:
                 append_matrix_data( matrix_input, 'versatility', matrix_step, i, q )
+            if i == matrix_points:
+                matrix_sim_finished( 'versatility', q )
 
 for q in primary_matrix_stats:
     for i in range(matrix_points):
@@ -485,57 +499,46 @@ for q in primary_matrix_stats:
             matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_primary_{q}.csv"), skiprows=1)
             if i == 0:
                 generate_matrix_data( matrix_input, switch_primary(), matrix_step, i, q )
-            else:
+            if i > 0:
                 append_matrix_data( matrix_input, switch_primary(), matrix_step, i, q )
-
-if( is_matrix_sim == False ):
-    if( generate_stat_charts ):
-        for i in dont_sim_stats:
-            generate_extra_data( get_old_data(i), i )
-        generate_chart()
+            if i == matrix_points:
+                matrix_sim_finished( switch_primary(), q )
 
 if( generate_stat_charts ):
     for i in dont_sim_stats:
         generate_extra_data( get_old_data(i), i )
     generate_chart()
 
-if( is_matrix_sim == True ):
-    if( generate_matrix_charts ):
-        for i in haste_matrix_stats:
-            matrix_sim_finished( "haste", i )
-        for i in crit_matrix_stats:
-            matrix_sim_finished( "crit", i )
-        for i in mastery_matrix_stats:
-            matrix_sim_finished( "mastery", i )
-        for i in vers_matrix_stats:
-            matrix_sim_finished( "versatility", i )
-        for i in primary_matrix_stats:
-            matrix_sim_finished( switch_primary(), i )
-
 if( generate_matrix_charts ):
-    for i in haste_matrix_gen_stats:
-        if ( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_haste_{i}_mod.csv"))):
-            input_data = get_old_matrix_data( i, "haste" )
-            add_matrix_data( input_data, "haste", i )
-            generate_matrix_chart( "haste" )
-    for i in crit_matrix_gen_stats:
-        if ( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_crit_{i}_mod.csv"))):
-            input_data = get_old_matrix_data( i, "crit" )
-            add_matrix_data( input_data, "crit", i )
-            generate_matrix_chart( "crit" )
-    for i in mastery_matrix_gen_stats:
-        if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_mastery_{i}_mod.csv"))):
-            input_data = get_old_matrix_data( i, "mastery" )
-            add_matrix_data( input_data, "mastery", i )
-            generate_matrix_chart( "mastery" )
-    for i in vers_matrix_gen_stats:
-        if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_versatility_{i}_mod.csv"))):
-            input_data = get_old_matrix_data( i, "versatility" )
-            add_matrix_data( input_data, "versatility", i )
-            generate_matrix_chart( "versatility" )
-    for i in primary_matrix_gen_stats:
-        if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_primary_{i}_mod.csv"))):
-            input_data = get_old_matrix_data( i, switch_primary() )
-            add_matrix_data( input_data, switch_primary(), i )
-            generate_matrix_chart( switch_primary() )
+    match i in dont_sim_matrix_stats:
+        case "haste":
+            for i in haste_matrix_gen_stats:
+                if ( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_haste_{i}_mod.csv"))):
+                    matrix_sim_finished( "haste", i )
+                if i == str(haste_matrix_gen_stats[-1]):
+                    generate_matrix_chart( 'haste' )
+        case "crit":
+            for i in crit_matrix_gen_stats:
+                if ( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_crit_{i}_mod.csv"))):
+                    matrix_sim_finished( "crit", i )
+                    if i == str(crit_matrix_gen_stats[-1]):
+                        generate_matrix_chart( 'crit' )
+        case "mastery":
+            for i in mastery_matrix_gen_stats:
+                if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_mastery_{i}_mod.csv"))):
+                    matrix_sim_finished( "mastery", i )
+                    if i == str(mastery_matrix_gen_stats[-1]):
+                        generate_matrix_chart( 'mastery' )
+        case "versatility":
+            for i in vers_matrix_gen_stats:
+                if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_versatility_{i}_mod.csv"))):
+                    matrix_sim_finished( "versatility", i )
+                    if i == str(vers_matrix_gen_stats[-1]):
+                        generate_matrix_chart( 'versatility' )
+        case switch_primary():
+            for i in primary_matrix_gen_stats:
+                if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_primary_{i}_mod.csv"))):
+                    matrix_sim_finished( switch_primary(), i )
+                    if i == str(primary_matrix_gen_stats[-1]):
+                        generate_matrix_chart( switch_primary() )
             
