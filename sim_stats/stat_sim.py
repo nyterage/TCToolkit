@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 import os
 import sys
 import platform
+from inputimeout import inputimeout, TimeoutOccurred
 
 # Input Variables
 input_profile = "unh_tst.simc" # This should be a bare profile, only character info and gear
@@ -471,6 +472,19 @@ def get_old_modified_data( stat ):
 
 def get_old_matrix_data( stat, matrix_stat ):
     return pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_mod.csv") )
+
+def query_yes_no(question, default="yes"):
+    valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
+    set_prompt = " [y/n] "
+
+    try:
+        choice = inputimeout(prompt=question+set_prompt, timeout=10)
+        if choice in valid:
+            return valid[choice]
+        else:
+            sys.stdout.write("Please respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
+    except TimeoutOccurred:
+        return valid[default]
         
 def get_stat_name( stat ):
     if( switch_primary() == stat ):
@@ -555,73 +569,87 @@ def matrix_sim_finished( matrix_stat, stat ):
 
 # Run the sim
 for i in sim_stats:
-    sim_strings[i] = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
-    print(sim_strings[i])
-    return_stat = subprocess.call(sim_strings[i].split())
-    if( return_stat == 0 ):
-        sim_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv"), skiprows=1)
-        if( generate_stat_charts ):
-            generate_extra_data( sim_input, i )
+    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv"))):
+        if( query_yes_no(f"Data already exists for {i}, would you like to run the sim anyway?", "yes") ):
+            sim_strings[i] = main_string+i+" reforge_plot_output_file="+ os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv")
+            print(sim_strings[i])
+            return_stat = subprocess.call(sim_strings[i].split())
+            if( return_stat == 0 ):
+                sim_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv"), skiprows=1)
+                if( generate_stat_charts ):
+                    generate_extra_data( sim_input, i )
+        else:
+            dont_sim_stats.append(i)
 
 for q in haste_matrix_stats:
-    for i in range(matrix_points):
-        matrix_strings[q] = main_string+q+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_haste_{q}.csv")+f" gear_haste_rating={i*matrix_step}"
-        print(matrix_strings[q])
-        return_stat = subprocess.call(matrix_strings[q].split())
-        if( return_stat == 0 ):
-            matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_haste_{q}.csv"), skiprows=1)
-            if i == 0:
-                generate_matrix_data( matrix_input, 'haste', matrix_step, i, q )
-            if i > 0:
-                append_matrix_data( matrix_input, 'haste', matrix_step, i, q )
+    if( pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_haste_{q}_mod.csv") )):
+        if( query_yes_no(f"Data already exists for haste/{q}, would you like to run the sim anyway?", "yes") ):
+            for i in range(matrix_points):
+                matrix_strings[q] = main_string+q+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_haste_{q}.csv")+f" gear_haste_rating={i*matrix_step}"
+                print(matrix_strings[q])
+                return_stat = subprocess.call(matrix_strings[q].split())
+                if( return_stat == 0 ):
+                    matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_haste_{q}.csv"), skiprows=1)
+                    if i == 0:
+                        generate_matrix_data( matrix_input, 'haste', matrix_step, i, q )
+                    if i > 0:
+                        append_matrix_data( matrix_input, 'haste', matrix_step, i, q )
     
 for q in crit_matrix_stats:
-    for i in range(matrix_points):
-        matrix_strings[q] = main_string+q+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_crit_{q}.csv")+f" gear_crit_rating={i*matrix_step}"
-        print(matrix_strings[q])
-        return_stat = subprocess.call(matrix_strings[q].split())
-        if( return_stat == 0 ):
-            matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_crit_{q}.csv"), skiprows=1)
-            if i == 0:
-                generate_matrix_data( matrix_input, 'crit', matrix_step, i, q )
-            if i > 0:
-                append_matrix_data( matrix_input, 'crit', matrix_step, i, q )
+    if( pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_crit_{q}_mod.csv") )):
+        if( query_yes_no(f"Data already exists for crit/{q}, would you like to run the sim anyway?", "yes") ):
+            for i in range(matrix_points):
+                matrix_strings[q] = main_string+q+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_crit_{q}.csv")+f" gear_crit_rating={i*matrix_step}"
+                print(matrix_strings[q])
+                return_stat = subprocess.call(matrix_strings[q].split())
+                if( return_stat == 0 ):
+                    matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_crit_{q}.csv"), skiprows=1)
+                    if i == 0:
+                        generate_matrix_data( matrix_input, 'crit', matrix_step, i, q )
+                    if i > 0:
+                        append_matrix_data( matrix_input, 'crit', matrix_step, i, q )
 
 for q in mastery_matrix_stats:
-    for i in range(matrix_points):
-        matrix_strings[q] = main_string+q+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_mastery_{q}.csv")+f" gear_mastery_rating={i*matrix_step}"
-        print(matrix_strings[q])
-        return_stat = subprocess.call(matrix_strings[q].split())
-        if( return_stat == 0 ):
-            matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_mastery_{q}.csv"), skiprows=1)
-            if i == 0:
-                generate_matrix_data( matrix_input, 'mastery', matrix_step, i, q )
-            if i > 0:
-                append_matrix_data( matrix_input, 'mastery', matrix_step, i, q )
+    if( pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_mastery_{q}_mod.csv") )):
+        if( query_yes_no(f"Data already exists for mastery/{q}, would you like to run the sim anyway?", "yes") ):
+            for i in range(matrix_points):
+                matrix_strings[q] = main_string+q+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_mastery_{q}.csv")+f" gear_mastery_rating={i*matrix_step}"
+                print(matrix_strings[q])
+                return_stat = subprocess.call(matrix_strings[q].split())
+                if( return_stat == 0 ):
+                    matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_mastery_{q}.csv"), skiprows=1)
+                    if i == 0:
+                        generate_matrix_data( matrix_input, 'mastery', matrix_step, i, q )
+                    if i > 0:
+                        append_matrix_data( matrix_input, 'mastery', matrix_step, i, q )
 
 for q in vers_matrix_stats:
-    for i in range(matrix_points):
-        matrix_strings[q] = main_string+q+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_versatility_{q}.csv")+f" gear_versatility_rating={i*matrix_step}"
-        print(matrix_strings[q])
-        return_stat = subprocess.call(matrix_strings[q].split())
-        if( return_stat == 0 ):
-            matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_versatility_{q}.csv"), skiprows=1)
-            if i == 0:
-                generate_matrix_data( matrix_input, 'versatility', matrix_step, i, q )
-            if i > 0:
-                append_matrix_data( matrix_input, 'versatility', matrix_step, i, q )
+    if( pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_versatility_{q}_mod.csv") )):
+        if( query_yes_no(f"Data already exists for vers/{q}, would you like to run the sim anyway?", "yes") ):
+            for i in range(matrix_points):
+                matrix_strings[q] = main_string+q+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_versatility_{q}.csv")+f" gear_versatility_rating={i*matrix_step}"
+                print(matrix_strings[q])
+                return_stat = subprocess.call(matrix_strings[q].split())
+                if( return_stat == 0 ):
+                    matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_versatility_{q}.csv"), skiprows=1)
+                    if i == 0:
+                        generate_matrix_data( matrix_input, 'versatility', matrix_step, i, q )
+                    if i > 0:
+                        append_matrix_data( matrix_input, 'versatility', matrix_step, i, q )
 
 for q in primary_matrix_stats:
-    for i in range(matrix_points):
-        matrix_strings[q] = main_string+q+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_primary_{q}.csv")+f" gear_{switch_primary()}={i*matrix_step}"
-        print(matrix_strings[q])
-        return_stat = subprocess.call(matrix_strings[q].split())
-        if( return_stat == 0 ):
-            matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_primary_{q}.csv"), skiprows=1)
-            if i == 0:
-                generate_matrix_data( matrix_input, switch_primary(), matrix_step, i, q )
-            if i > 0:
-                append_matrix_data( matrix_input, switch_primary(), matrix_step, i, q )
+    if( pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{switch_primary()}_{q}_mod.csv") )):
+        if( query_yes_no(f"Data already exists for {switch_primary()}/{q}, would you like to run the sim anyway?", "yes") ):
+            for i in range(matrix_points):
+                matrix_strings[q] = main_string+q+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_primary_{q}.csv")+f" gear_{switch_primary()}={i*matrix_step}"
+                print(matrix_strings[q])
+                return_stat = subprocess.call(matrix_strings[q].split())
+                if( return_stat == 0 ):
+                    matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_primary_{q}.csv"), skiprows=1)
+                    if i == 0:
+                        generate_matrix_data( matrix_input, switch_primary(), matrix_step, i, q )
+                    if i > 0:
+                        append_matrix_data( matrix_input, switch_primary(), matrix_step, i, q )
 
 if( generate_stat_charts ):
     primary = switch_primary()

@@ -1,3 +1,4 @@
 pandas==2.2.1
 plotly==5.20.0
 kaleido==0.2.1
+inputimeout==1.0.4
