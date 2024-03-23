@@ -457,7 +457,7 @@ if( fight_style == "Patchwerk" ):
     if( desired_targets == 1 ):
         fight_type_string = "Single Target"
     if( desired_targets > 1 ):
-        fight_type_string = f"{desired_targets} Targets AoE"
+        fight_type_string = f"{desired_targets} Target AoE"
 if( fight_style == "DungeonSlice" ):
     fight_type_string = "Mixed Target Count"
 else:
