@@ -10,6 +10,9 @@ import platform
 input_profile = "unh_tst.simc" # This should be a bare profile, only character info and gear
 sim_class = "death_knight"
 specilization = "unholy"
+fight_style = "Patchwerk" # Patchwerk, and DungeonSlice are the likely most useful for this
+desired_targets = 1 # Number of enemy targets to sim, DungeonSlice ignores this
+sim_duration = 300 # Duration of the sim in seconds
 tar_err = 0.05 # Sims target Error
 iter = 15000 # Max number of Iterations to run, will stop at this number if target error has not been reached
 pos = 1 # Plot only positive values from the current rating, set to 0 to generate both positive and negative values
@@ -48,6 +51,8 @@ temporary_enchant_disable_string = "disabled"
 # Only applies to the sim of temporary enchants is set to true
 temporary_enchant_mh = "howling_rune_3"
 temporary_enchant_oh = "howling_rune_3"
+# Make sure you set this to true if you want to eliminate the influence of trinkets on the data!
+disable_trinekts = True
 
 # Base Stat Modifications
 modify_current_stats = True
@@ -63,14 +68,14 @@ sim_haste = True
 sim_crit = True
 sim_mastery = True
 sim_vers = True
-sim_primary = False
+sim_primary = True
 generate_stat_charts = True
-# Only Applies to basic stat sims, not matrix sims
+# These Only Apply to basic stat sims, not matrix sims
 graph_haste = True
 graph_crit = True
 graph_mastery = True
 graph_vers = True
-graph_primary = False
+graph_primary = True
 
 # Matrix Sim Variables
 # Enabling any of these will disable the normal stat scaling sims! compute time would be far too long.
@@ -81,7 +86,7 @@ sim_vers_matrix = False
 sim_primary_matrix = False
 generate_matrix_charts = False
 # Enables or Disables the generation of these stats as "secondary" stats in the matrix.
-# e.g. disabling all but haste would generate charts for all primary stats, with as the haste secondary.
+# e.g. disabling all but haste would generate charts for all enabled primary stats (options above), with as the haste secondary.
 # allows for mixing and matching for deeper exploration. 
 # Will also enable or disable them in chart generation, no matter if the sim is run or youre just generating charts.
 gen_haste_secondary_matrix = True
@@ -93,9 +98,11 @@ gen_primary_secondary_matrix = True
 # Graph Variables
 graph_width = 2000 # Width of the graph in pixels
 graph_height = 1000 # Height of the graph in pixels
+# Style of the graph, useful variations are "lines+markers", "lines", "markers"
+graph_style = "lines+markers"
 # Only One of these two should be enabled at any one point in time!
-graph_dps_per_point = True # Probably the only useful graph of the bunch
-graph_dps = False # Plots DPS vs Rating, same thing youd get in the simc html output but bigger!
+graph_dps_per_point = True # Probably the only useful graph
+graph_dps = False # Plots DPS vs Rating, same thing youd get in the simc html output, but bigger!
 
 #|----------------------------------------------------------------------------------------|
 #| Code Starts Here, dont touch anything below this line unless you know what youre doing |
@@ -234,6 +241,9 @@ if( is_matrix_sim == True ):
     sim_mod.append("dps_plot_points="+str(matrix_secondary_points)+"\n")
     sim_mod.append("dps_plot_step="+str(matrix_secondary_step)+"\n")
 sim_mod.append("target_error="+str(tar_err)+"\n")
+sim_mod.append("fight_style="+fight_style+"\n")
+sim_mod.append("desired_targets="+str(desired_targets)+"\n")
+sim_mod.append("max_time="+str(sim_duration)+"\n")
 sim_mod.append("report_details="+str(report_details)+"\n")
 sim_mod.append("optimal_raid="+str(optimal_raid)+"\n")
 sim_mod.append("dps_plot_positive="+str(pos)+"\n")
@@ -265,6 +275,9 @@ with open(os.path.join(profile_dir, f"{sim_class}_{specilization}_input.simc"), 
             profile_mod.append("temporary_enchant=main_hand:"+temporary_enchant_mh+"/"+"off_hand:"+temporary_enchant_oh+"\n")
         profile_mod.append("set_bonus=tier"+str(tier_set_number)+"_2pc="+str(tier_set_bonus_2pc)+"\n")
         profile_mod.append("set_bonus=tier"+str(tier_set_number)+"_4pc="+str(tier_set_bonus_4pc)+"\n")
+        if( disable_trinekts ):
+            profile_mod.append( "trinket1=\n" )
+            profile_mod.append( "trinket2=\n" )
         sim_profile.write("\n")
         for i in profile_mod:
             sim_profile.write(i)
@@ -446,6 +459,17 @@ layout = go.Layout(
 
 fig=go.Figure( layout=layout )
 
+fight_type_string = ""
+if( fight_style == "Patchwerk" ):
+    if( desired_targets == 1 ):
+        fight_type_string = "Single Target"
+    if( desired_targets > 1 ):
+        fight_type_string = f"{desired_targets} Targets AoE"
+if( fight_style == "DungeonSlice" ):
+    fight_type_string = "Mixed Target Count"
+else:
+    fight_type_string = "Unknown Target Count"
+
 def get_old_data( stat ):
     return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
 
@@ -495,36 +519,38 @@ def append_matrix_data( data, matrix_stat, step, point, stat ):
 
 def add_data( data, stat ):
     if( graph_dps_per_point == True ):
-        fig.add_trace(go.Scatter(x=data[get_stat_name(stat)], y=data['Rolling DPS per point'], mode='lines+markers', name=get_stat_name(stat)))
+        fig.add_trace(go.Scatter(x=data[get_stat_name(stat)], y=data['Rolling DPS per point'], mode=graph_style, name=get_stat_name(stat)))
     if( graph_dps == True ):
-        fig.add_trace(go.Scatter(x=data[get_stat_name(stat)], y=data[' DPS'], mode='lines+markers', name=get_stat_name(stat)))
+        fig.add_trace(go.Scatter(x=data[get_stat_name(stat)], y=data[' DPS'], mode=graph_style, name=get_stat_name(stat)))
     data.describe(include='all').to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{stat}_data_info.csv"), index=True)
 
 def add_matrix_data( data, matrix_stat, stat ):
     if( graph_dps_per_point == True ):
-        fig.add_trace(go.Scatter(x=data[f'{matrix_stat} Rating'], y=data['Average DPS per point'], mode='lines+markers', name=stat))
+        fig.add_trace(go.Scatter(x=data[f'{matrix_stat} Rating'], y=data['Average DPS per point'], mode=graph_style, name=stat))
     if( graph_dps == True ):
-        fig.add_trace(go.Scatter(x=data[matrix_stat+' Rating'], y=data['Average DPS'], mode='lines+markers', name=stat))
+        fig.add_trace(go.Scatter(x=data[matrix_stat+' Rating'], y=data['Average DPS'], mode=graph_style, name=stat))
     data.describe(include='all').to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_data_info.csv"), index=True)
 
 def generate_chart():
     if( graph_dps_per_point == True ):
-        fig.update_layout(title='DPS per point vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS per point')
+        fig.update_layout(title=f'{fight_type_string} DPS per point vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS per point')
         fig.write_image(os.path.join(chart_output_dir,f'{sim_class}_{specilization}_dps_per_point.png'))
         fig.show()
+        fig.data = []
     if( graph_dps == True ):
-        fig.update_layout(title='DPS vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS')
+        fig.update_layout(title=f'{fight_type_string} DPS vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS')
         fig.write_image(os.path.join(chart_output_dir,f'{sim_class}_{specilization}_dps.png'))
         fig.show()
+        fig.data = []
 
 def generate_matrix_chart( stat ):
     if( graph_dps_per_point == True ):
-        fig.update_layout(title=f'DPS per point vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS per point')
+        fig.update_layout(title=f'{fight_type_string} DPS per point vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS per point')
         fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_dps_per_point.png'))
         fig.show()
         fig.data = []
     if( graph_dps == True ):
-        fig.update_layout(title=f'DPS vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS')
+        fig.update_layout(title=f'{fight_type_string} DPS vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS')
         fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_dps.png'))
         fig.show()
         fig.data = []
@@ -605,6 +631,7 @@ for q in primary_matrix_stats:
                 append_matrix_data( matrix_input, switch_primary(), matrix_step, i, q )
 
 if( generate_stat_charts ):
+    primary = switch_primary()
     for i in dont_sim_stats:
         match i:
             case "haste":
@@ -635,7 +662,7 @@ if( generate_stat_charts ):
                     else:
                         if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv"))):
                             generate_extra_data( get_old_data(i), i )
-            case switch_primary():
+            case primary:
                 if( graph_primary ):
                     if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}_mod.csv"))):
                         add_data( get_old_modified_data(i), i )
