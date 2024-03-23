@@ -46,11 +46,7 @@ potion = "disabled"
 food = "disabled"
 flask = "disabled"
 augmentation = "disabled"
-temporary_enchants = False
-temporary_enchant_disable_string = "disabled"
-# Only applies to the sim of temporary enchants is set to true
-temporary_enchant_mh = "howling_rune_3"
-temporary_enchant_oh = "howling_rune_3"
+temporary_enchants = "disabled"
 # Make sure you set this to true if you want to eliminate the influence of trinkets on the data!
 disable_trinekts = True
 
@@ -269,10 +265,7 @@ with open(os.path.join(profile_dir, f"{sim_class}_{specilization}_input.simc"), 
         profile_mod.append("food="+food+"\n")
         profile_mod.append("flask="+flask+"\n")
         profile_mod.append("augmentation="+augmentation+"\n")
-        if( temporary_enchants == False ):
-            profile_mod.append("temporary_enchant="+temporary_enchant_disable_string+"\n")
-        else:
-            profile_mod.append("temporary_enchant=main_hand:"+temporary_enchant_mh+"/"+"off_hand:"+temporary_enchant_oh+"\n")
+        profile_mod.append("temporary_enchant="+temporary_enchants+"\n")
         profile_mod.append("set_bonus=tier"+str(tier_set_number)+"_2pc="+str(tier_set_bonus_2pc)+"\n")
         profile_mod.append("set_bonus=tier"+str(tier_set_number)+"_4pc="+str(tier_set_bonus_4pc)+"\n")
         if( disable_trinekts ):
