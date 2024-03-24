@@ -95,15 +95,16 @@ gen_primary_secondary_matrix = True
 # Graph Variables
 graph_width = 2000 # Width of the graph in pixels
 graph_height = 1000 # Height of the graph in pixels
+graph_open = True # Open the interactive graph in a browser window when the script finishes, will still save the image to the output directory if set to false
 # Style of the graph, useful variations are "lines+markers", "lines", "markers"
 graph_style = "lines+markers"
 # Only One of these two should be enabled at any one point in time!
 graph_dps_per_point = True # Probably the only useful graph
 graph_dps = False # Plots DPS vs Rating, same thing youd get in the simc html output, but bigger!
 
-#|----------------------------------------------------------------------------------------|
-#| Code Starts Here, dont touch anything below this line unless you know what youre doing |
-#|----------------------------------------------------------------------------------------|
+#----------------------------------------------------------------------------------------#
+# Code Starts Here, dont touch anything below this line unless you know what youre doing #
+#----------------------------------------------------------------------------------------#
 # Directories
 profile_dir = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "profiles")
 simc_dir = os.path.join(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'simc')))
@@ -533,29 +534,25 @@ def add_matrix_data( data, matrix_stat, stat ):
         fig.add_trace(go.Scatter(x=data[matrix_stat+' Rating'], y=data['Average DPS'], mode=graph_style, name=stat))
     data.describe(include='all').to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_data_info.csv"), index=True)
 
+graph_type_string = ""
+if( graph_dps_per_point == True ):
+    graph_type_string = "DPS per point"
+if( graph_dps == True ):
+    graph_type_string = "DPS"
+
 def generate_chart():
-    if( graph_dps_per_point == True ):
-        fig.update_layout(title=f'{sim_duration} second {fight_type_string} - {specilization} {sim_class} - DPS per point vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS per point')
-        fig.write_image(os.path.join(chart_output_dir,f'{sim_class}_{specilization}_dps_per_point.png'))
+    fig.update_layout(title=f'{sim_duration} second {fight_type_string} - {specilization} {sim_class} - {graph_type_string} vs Rating', xaxis_title='Stat Rating', yaxis_title=f'{graph_type_string}')
+    fig.write_image(os.path.join(chart_output_dir,f'{sim_class}_{specilization}_{graph_type_string}.png'))
+    if( graph_open ):
         fig.show()
-        fig.data = []
-    if( graph_dps == True ):
-        fig.update_layout(title=f'{sim_duration} second {fight_type_string} - {specilization} {sim_class} - DPS vs Rating', xaxis_title='Stat Rating', yaxis_title='DPS')
-        fig.write_image(os.path.join(chart_output_dir,f'{sim_class}_{specilization}_dps.png'))
-        fig.show()
-        fig.data = []
+    fig.data = []
 
 def generate_matrix_chart( stat ):
-    if( graph_dps_per_point == True ):
-        fig.update_layout(title=f'{sim_duration} second {fight_type_string} - {specilization} {sim_class} - DPS per point vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS per point')
-        fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_dps_per_point.png'))
+    fig.update_layout(title=f'{sim_duration} second {fight_type_string} - {specilization} {sim_class} - {graph_type_string} vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title=f'{graph_type_string}')
+    fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_{graph_type_string}.png'))
+    if( graph_open ):
         fig.show()
-        fig.data = []
-    if( graph_dps == True ):
-        fig.update_layout(title=f'{sim_duration} second {fight_type_string} - {specilization} {sim_class} - DPS vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title='DPS')
-        fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_dps.png'))
-        fig.show()
-        fig.data = []
+    fig.data = []
 
 
 def matrix_sim_finished( matrix_stat, stat ):
@@ -573,7 +570,7 @@ def run_stat_sim( stat ):
 
 def run_matrix_sim( matrix_stat, stat ):
     for i in range(matrix_points):
-        matrix_strings[stat] = main_string+stat+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}.csv")+f" gear_{matrix_stat}_rating={i*matrix_step}"
+        matrix_strings[stat] = main_string+stat+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}.csv")+f" gear_{get_stat_name(matrix_stat)}={i*matrix_step}"
         print(matrix_strings[stat])
         return_stat = subprocess.call(matrix_strings[stat].split())
         if( return_stat == 0 ):
