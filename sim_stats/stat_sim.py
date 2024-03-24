@@ -66,7 +66,7 @@ sim_crit = True
 sim_mastery = True
 sim_vers = True
 sim_primary = True
-generate_stat_charts = True
+generate_stat_charts = False
 # These Only Apply to basic stat sims, not matrix sims
 graph_haste = True
 graph_crit = True
@@ -76,12 +76,12 @@ graph_primary = True
 
 # Matrix Sim Variables
 # Enabling any of these will disable the normal stat scaling sims! compute time would be far too long.
-sim_haste_matrix = False
-sim_crit_matrix = False
-sim_mastery_matrix = False
-sim_vers_matrix = False
-sim_primary_matrix = False
-generate_matrix_charts = False
+sim_haste_matrix = True
+sim_crit_matrix = True
+sim_mastery_matrix = True
+sim_vers_matrix = True
+sim_primary_matrix = True
+generate_matrix_charts = True
 # Enables or Disables the generation of these stats as "secondary" stats in the matrix.
 # e.g. disabling all but haste would generate charts for all enabled primary stats (options above), with as the haste secondary.
 # allows for mixing and matching for deeper exploration. 
@@ -459,7 +459,7 @@ if( fight_style == "Patchwerk" ):
         fight_type_string = "Single Target"
     if( desired_targets > 1 ):
         fight_type_string = f"{desired_targets} Target AoE"
-if( fight_style == "DungeonSlice" ):
+elif( fight_style == "DungeonSlice" ):
     fight_type_string = "Mixed Target Count"
 else:
     fight_type_string = "Unknown Target Count"
@@ -483,6 +483,7 @@ def query_yes_no(question, default="yes"):
             return valid[choice]
         else:
             sys.stdout.write("Please respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
+            query_yes_no(question, default)
     except TimeoutOccurred:
         return valid[default]
         
@@ -511,18 +512,12 @@ def generate_matrix_data( data, matrix_stat, step, point, stat ):
     data[matrix_stat+' Rating'] = rating
     data['Average DPS per point'] = data['DPS per point'].mean()
     data['Average DPS'] = data[' DPS'].mean()
-    data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_mod.csv"), index=False)
-
-def append_matrix_data( data, matrix_stat, step, point, stat ):
-    rating = step*point
-    data['DPS change'] = ( data[' DPS'].diff() )
-    data['Rating Change'] = ( data[get_stat_name(stat)].diff() )
-    data['DPS per point'] = data['DPS change'] / data['Rating Change']
-    data['Rolling DPS per point'] = data['DPS per point'].rolling(window=rolling_avg).mean()
-    data[matrix_stat+' Rating'] = rating
-    data['Average DPS per point'] = data['DPS per point'].mean()
-    data['Average DPS'] = data[' DPS'].mean()
-    data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_mod.csv"), mode='a', header=False, index=False)
+    csv_header = True
+    csv_mode = 'w'
+    if( point > 0 ):
+        csv_header = False
+        csv_mode = 'a'
+    data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_mod.csv"), mode=csv_mode, header=csv_header, index=False)
 
 def add_data( data, stat ):
     if( graph_dps_per_point == True ):
@@ -583,10 +578,7 @@ def run_matrix_sim( matrix_stat, stat ):
         return_stat = subprocess.call(matrix_strings[stat].split())
         if( return_stat == 0 ):
             matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}.csv"), skiprows=1)
-            if( i == 0 ):
-                generate_matrix_data( matrix_input, matrix_stat, matrix_step, i, stat )
-            else:
-                append_matrix_data( matrix_input, matrix_stat, matrix_step, i, q )
+            generate_matrix_data( matrix_input, matrix_stat, matrix_step, i, stat )
 
 # Run the sim
 for i in sim_stats:
