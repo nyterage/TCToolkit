@@ -598,7 +598,7 @@ def generate_matrix_data( data, matrix_stat, step, point, stat ):
     data[matrix_stat+' Rating'] = rating
     data['Average DPS per point'] = data['DPS per point'].mean()
     data['Average DPS'] = data[' DPS'].mean()
-    data['DPS % Increase'] = (data['DPS Change'].diff() / data['DPS Change'])*100
+    data['DPS % Increase'] = (data['DPS change'].diff() / data['DPS change'])*100
     csv_header = True
     csv_mode = 'w'
     if( point > 0 ):
