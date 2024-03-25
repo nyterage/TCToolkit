@@ -8,18 +8,18 @@ import platform
 from inputimeout import inputimeout, TimeoutOccurred
 
 # Input Variables
-input_profile = "unh_tst.simc" # This should be a bare profile, only character info and gear
+input_profile = "unh_aoe.simc" # This should be a bare profile, only character info and gear
 sim_class = "death_knight"
 specilization = "unholy"
 fight_style = "Patchwerk" # Patchwerk, and DungeonSlice are the likely most useful for this
-desired_targets = 1 # Number of enemy targets to sim, DungeonSlice ignores this
-sim_duration = 300 # Duration of the sim in seconds
+desired_targets = 5 # Number of enemy targets to sim, DungeonSlice ignores this
+sim_duration = 60 # Duration of the sim in seconds
 tar_err = 0.05 # Sims target Error
 iter = 15000 # Max number of Iterations to run, will stop at this number if target error has not been reached
 pos = 1 # Plot only positive values from the current rating, set to 0 to generate both positive and negative values
 plot_step = 10 # Difference in Rating between each plot point
 plot_points = 1000 # Number of plot points to generate
-rolling_avg = 10 # Rolling average for DPS per point, set to 1 to disable rolling average
+rolling_avg = 18 # Rolling average for DPS per point, set to 1 to disable rolling average
 report_details = 1
 optimal_raid = 1
 
@@ -37,8 +37,8 @@ matrix_iter = 15000 # Max number of Iterations to run for the matrix sims, will 
 # Profile Modifications
 modify_base_profile = True # Set to False if you dont want to modify the base profile with any of the values below
 # Set to 1 to enable that tier set bonus, set to 0 to disable it
-tier_set_bonus_2pc = 0
-tier_set_bonus_4pc = 0
+tier_set_bonus_2pc = 1
+tier_set_bonus_4pc = 1
 tier_set_number = 31 # Set the tier set number, the current tier at the time of writing is Amirdrassil, which is tier_set_number = 31
 # If you want to remove the influence of these things on the sim, make sure they are set to "disabled"!
 # Otherwise, syntax is the name in snake_case followed by the rank of the item, e.g. potion = "elemental_potion_of_ultimate_power_3"
@@ -66,7 +66,7 @@ sim_crit = True
 sim_mastery = True
 sim_vers = True
 sim_primary = True
-generate_stat_charts = False
+generate_stat_charts = True
 # These Only Apply to basic stat sims, not matrix sims
 graph_haste = True
 graph_crit = True
@@ -80,8 +80,8 @@ sim_haste_matrix = True
 sim_crit_matrix = True
 sim_mastery_matrix = True
 sim_vers_matrix = True
-sim_primary_matrix = True
-generate_matrix_charts = True
+sim_primary_matrix = False
+generate_matrix_charts = False
 # Enables or Disables the generation of these stats as "secondary" stats in the matrix.
 # e.g. disabling all but haste would generate charts for all enabled primary stats (options above), with as the haste secondary.
 # allows for mixing and matching for deeper exploration. 
@@ -457,22 +457,22 @@ fig=go.Figure( layout=layout )
 fight_type_string = ""
 if( fight_style == "Patchwerk" ):
     if( desired_targets == 1 ):
-        fight_type_string = "Single Target"
+        fight_type_string = "Single_Target"
     if( desired_targets > 1 ):
-        fight_type_string = f"{desired_targets} Target AoE"
+        fight_type_string = f"{desired_targets}_Target_AoE"
 elif( fight_style == "DungeonSlice" ):
-    fight_type_string = "Mixed Target Count"
+    fight_type_string = "Mixed_Target_Count"
 else:
-    fight_type_string = "Unknown Target Count"
+    fight_type_string = "Unknown_Target_Count"
 
 def get_old_data( stat ):
-    return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
+    return pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}_{fight_type_string}.csv"), skiprows=1)
 
 def get_old_modified_data( stat ):
-    return pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{stat}_mod.csv") )
+    return pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{stat}_{fight_type_string}_mod.csv") )
 
 def get_old_matrix_data( stat, matrix_stat ):
-    return pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_mod.csv") )
+    return pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_{matrix_stat}_{stat}_mod.csv") )
 
 def query_yes_no(question, default="yes"):
     valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
@@ -500,8 +500,8 @@ def generate_extra_data( data, stat ):
     data['Rating Change'] = ( data[get_stat_name(stat)].diff() )
     data['DPS per point'] = data['DPS change'] / data['Rating Change']
     data['Rolling DPS per point'] = data['DPS per point'].rolling(window=rolling_avg).mean()
-    data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{stat}_mod.csv"), index=False)
-    new_data = pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{stat}_mod.csv"))
+    data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{stat}_{fight_type_string}_mod.csv"), index=False)
+    new_data = pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{stat}_{fight_type_string}_mod.csv"))
     add_data(new_data, stat)
 
 def generate_matrix_data( data, matrix_stat, step, point, stat ):
@@ -518,21 +518,21 @@ def generate_matrix_data( data, matrix_stat, step, point, stat ):
     if( point > 0 ):
         csv_header = False
         csv_mode = 'a'
-    data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_mod.csv"), mode=csv_mode, header=csv_header, index=False)
+    data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_{fight_type_string}_mod.csv"), mode=csv_mode, header=csv_header, index=False)
 
 def add_data( data, stat ):
     if( graph_dps_per_point == True ):
         fig.add_trace(go.Scatter(x=data[get_stat_name(stat)], y=data['Rolling DPS per point'], mode=graph_style, name=get_stat_name(stat)))
     if( graph_dps == True ):
         fig.add_trace(go.Scatter(x=data[get_stat_name(stat)], y=data[' DPS'], mode=graph_style, name=get_stat_name(stat)))
-    data.describe(include='all').to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{stat}_data_info.csv"), index=True)
+    data.describe(include='all').to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{stat}_{fight_type_string}_data_info.csv"), index=True)
 
 def add_matrix_data( data, matrix_stat, stat ):
     if( graph_dps_per_point == True ):
         fig.add_trace(go.Scatter(x=data[f'{matrix_stat} Rating'], y=data['Average DPS per point'], mode=graph_style, name=stat))
     if( graph_dps == True ):
         fig.add_trace(go.Scatter(x=data[matrix_stat+' Rating'], y=data['Average DPS'], mode=graph_style, name=stat))
-    data.describe(include='all').to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_data_info.csv"), index=True)
+    data.describe(include='all').to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_{matrix_stat}_{stat}_data_info.csv"), index=True)
 
 graph_type_string = ""
 if( graph_dps_per_point == True ):
@@ -542,44 +542,44 @@ if( graph_dps == True ):
 
 def generate_chart():
     fig.update_layout(title=f'{sim_duration} second {fight_type_string} - {specilization} {sim_class} - {graph_type_string} vs Rating', xaxis_title='Stat Rating', yaxis_title=f'{graph_type_string}')
-    fig.write_image(os.path.join(chart_output_dir,f'{sim_class}_{specilization}_{graph_type_string}.png'))
+    fig.write_image(os.path.join(chart_output_dir,f'{sim_class}_{specilization}_{fight_type_string}_{graph_type_string}.png'))
     if( graph_open ):
         fig.show()
     fig.data = []
 
 def generate_matrix_chart( stat ):
     fig.update_layout(title=f'{sim_duration} second {fight_type_string} - {specilization} {sim_class} - {graph_type_string} vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title=f'{graph_type_string}')
-    fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_{graph_type_string}.png'))
+    fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_{fight_type_string}_{graph_type_string}.png'))
     if( graph_open ):
         fig.show()
     fig.data = []
 
 
 def matrix_sim_finished( matrix_stat, stat ):
-    new_data = pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_mod.csv"))
+    new_data = pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_{matrix_stat}_{stat}_mod.csv"))
     add_matrix_data(new_data, matrix_stat, stat)
 
 def run_stat_sim( stat ):
-    sim_strings[stat] = main_string+stat+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv")
+    sim_strings[stat] = main_string+stat+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}_{fight_type_string}.csv")
     print(sim_strings[stat])
     return_stat = subprocess.call(sim_strings[stat].split())
     if( return_stat == 0 ):
-        sim_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}.csv"), skiprows=1)
+        sim_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{stat}_{fight_type_string}.csv"), skiprows=1)
         if( generate_stat_charts ):
             generate_extra_data( sim_input, stat )
 
 def run_matrix_sim( matrix_stat, stat ):
     for i in range(matrix_points):
-        matrix_strings[stat] = main_string+stat+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}.csv")+f" gear_{get_stat_name(matrix_stat)}={i*matrix_step}"
+        matrix_strings[stat] = main_string+stat+" reforge_plot_output_file="+os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{matrix_stat}_{stat}.csv")+f" gear_{get_stat_name(matrix_stat)}={i*matrix_step}"
         print(matrix_strings[stat])
         return_stat = subprocess.call(matrix_strings[stat].split())
         if( return_stat == 0 ):
-            matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}.csv"), skiprows=1)
+            matrix_input=pd.read_csv(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{matrix_stat}_{stat}.csv"), skiprows=1)
             generate_matrix_data( matrix_input, matrix_stat, matrix_step, i, stat )
 
 # Run the sim
 for i in sim_stats:
-    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv"))):
+    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}_{fight_type_string}_.csv"))):
         if( query_yes_no(f"Data already exists for {i}, would you like to run the sim anyway?", "yes") ):
             run_stat_sim(i)
         else:
@@ -588,35 +588,35 @@ for i in sim_stats:
         run_stat_sim(i)
 
 for q in haste_matrix_stats:
-    if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_haste_{q}_mod.csv") )):
+    if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_haste_{q}_mod.csv") )):
         if( query_yes_no(f"Data already exists for haste/{q}, would you like to run the sim anyway?", "yes") ):
             run_matrix_sim('haste', q)
     else:
         run_matrix_sim('haste', q)
     
 for q in crit_matrix_stats:
-    if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_crit_{q}_mod.csv") )):
+    if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_crit_{q}_mod.csv") )):
         if( query_yes_no(f"Data already exists for crit/{q}, would you like to run the sim anyway?", "yes") ):
             run_matrix_sim('crit', q)
     else:
         run_matrix_sim('crit', q)
 
 for q in mastery_matrix_stats:
-    if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_mastery_{q}_mod.csv") )):
+    if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_mastery_{q}_mod.csv") )):
         if( query_yes_no(f"Data already exists for mastery/{q}, would you like to run the sim anyway?", "yes") ):
             run_matrix_sim('mastery', q)
     else:
         run_matrix_sim('mastery', q)
 
 for q in vers_matrix_stats:
-    if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_versatility_{q}_mod.csv") )):
+    if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_versatility_{q}_mod.csv") )):
         if( query_yes_no(f"Data already exists for vers/{q}, would you like to run the sim anyway?", "yes") ):
             run_matrix_sim('versatility', q)
     else:
         run_matrix_sim('versatility', q)
 
 for q in primary_matrix_stats:
-    if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_{switch_primary()}_{q}_mod.csv") )):
+    if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_{switch_primary()}_{q}_mod.csv") )):
         if( query_yes_no(f"Data already exists for {switch_primary()}/{q}, would you like to run the sim anyway?", "yes") ):
             run_matrix_sim(switch_primary(), q)
     else:
@@ -628,64 +628,64 @@ if( generate_stat_charts ):
         match i:
             case "haste":
                 if( graph_haste ):
-                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}_mod.csv"))):
+                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}_mod.csv"))):
                         add_data( get_old_modified_data(i), i )
                     else:
-                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv"))):
+                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}.csv"))):
                             generate_extra_data( get_old_data(i), i )
             case "crit":
                 if( graph_crit ):
-                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}_mod.csv"))):
+                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}_mod.csv"))):
                         add_data( get_old_modified_data(i), i )
                     else:
-                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv"))):
+                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}.csv"))):
                             generate_extra_data( get_old_data(i), i )
             case "mastery":
                 if( graph_mastery ):
-                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}_mod.csv"))):
+                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}_mod.csv"))):
                         add_data( get_old_modified_data(i), i )
                     else:
-                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv"))):
+                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}.csv"))):
                             generate_extra_data( get_old_data(i), i )
             case "versatility":
                 if( graph_vers ):
-                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}_mod.csv"))):
+                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}_mod.csv"))):
                         add_data( get_old_modified_data(i), i )
                     else:
-                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv"))):
+                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}.csv"))):
                             generate_extra_data( get_old_data(i), i )
             case primary:
                 if( graph_primary ):
-                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}_mod.csv"))):
+                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}_mod.csv"))):
                         add_data( get_old_modified_data(i), i )
                     else:
-                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}.csv"))):
+                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}.csv"))):
                             generate_extra_data( get_old_data(i), i )
     generate_chart()
 
 if( generate_matrix_charts ):
     for i in haste_matrix_gen_stats:
-        if ( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_haste_{i}_mod.csv"))):
+        if ( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_haste_{i}_mod.csv"))):
             matrix_sim_finished( "haste", i )
         if i == str(haste_matrix_gen_stats[-1]):
             generate_matrix_chart( 'haste' )
     for i in crit_matrix_gen_stats:
-        if ( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_crit_{i}_mod.csv"))):
+        if ( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_crit_{i}_mod.csv"))):
             matrix_sim_finished( "crit", i )
         if i == str(crit_matrix_gen_stats[-1]):
             generate_matrix_chart( 'crit' )
     for i in mastery_matrix_gen_stats:
-        if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_mastery_{i}_mod.csv"))):
+        if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_mastery_{i}_mod.csv"))):
             matrix_sim_finished( "mastery", i )
         if i == str(mastery_matrix_gen_stats[-1]):
             generate_matrix_chart( 'mastery' )
     for i in vers_matrix_gen_stats:
-        if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_versatility_{i}_mod.csv"))):
+        if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_versatility_{i}_mod.csv"))):
             matrix_sim_finished( "versatility", i )
         if i == str(vers_matrix_gen_stats[-1]):
             generate_matrix_chart( 'versatility' )
     for i in primary_matrix_gen_stats:
-        if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_primary_{i}_mod.csv"))):
+        if( os.path.isfile(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_{switch_primary()}_{i}_mod.csv"))):
             matrix_sim_finished( switch_primary(), i )
         if i == str(primary_matrix_gen_stats[-1]):
             generate_matrix_chart( switch_primary() )
