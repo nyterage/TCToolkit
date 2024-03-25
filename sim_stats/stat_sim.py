@@ -598,13 +598,17 @@ def generate_matrix_data( data, matrix_stat, step, point, stat ):
     data[matrix_stat+' Rating'] = rating
     data['Average DPS per point'] = data['DPS per point'].mean()
     data['Average DPS'] = data[' DPS'].mean()
-    data['DPS % Increase'] = (data['DPS change'].diff() / data['DPS change'])*100
+    indexrating = data[ (data[get_stat_name(stat)] > 0 )].index
+    data.drop(indexrating, inplace=True)
     csv_header = True
     csv_mode = 'w'
     if( point > 0 ):
         csv_header = False
         csv_mode = 'a'
     data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_{fight_type_string}_mod.csv"), mode=csv_mode, header=csv_header, index=False)
+    new_data = pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_{fight_type_string}_mod.csv"))
+    new_data['Pct increase'] = ( new_data['Average DPS'].diff() / new_data['Average DPS'] ) * 100
+    new_data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_{fight_type_string}_mod.csv"), index=False)
 
 def add_data( data, stat ):
     if( graph_dps_per_point == True ):
