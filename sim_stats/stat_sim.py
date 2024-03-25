@@ -28,8 +28,8 @@ optimal_raid = 1
 # To enable matrix sims, set the variable for the stat you want to scale up to True, this will then generate the dps/point value for all other stats #
 # Warning, matrix sims can take an extremely long time to run, especially if you have multiple stats enabled                                         #
 #----------------------------------------------------------------------------------------------------------------------------------------------------#
-matrix_step = 200 # Difference in Rating between each matrix point, applies to the main matrix stat (option below)
-matrix_points = 50 # Number of points to generate in the matrix, applies to the main matrix stat (option below)
+matrix_step = 300 # Difference in Rating between each matrix point, applies to the main matrix stat (option below)
+matrix_points = 34 # Number of points to generate in the matrix, applies to the main matrix stat (option below)
 matrix_secondary_step = 100 # Difference in Rating between each matrix point, applies to the secondary matrix stats
 matrix_secondary_points = 5 # Number of data points to generate in the matrix, applies to the secondary matrix stats. Will be averaged, higher numbers will increase accuracy but also increase compute time
 matrix_iter = 15000 # Max number of Iterations to run for the matrix sims, will stop at this number if target error has not been reached
@@ -50,6 +50,10 @@ augmentation = "disabled"
 temporary_enchants = "disabled"
 # Make sure you set this to true if you want to eliminate the influence of trinkets on the data!
 disable_trinekts = True
+disable_weapon_effects = True
+use_2h = False # Only applies to Warrior and FDK, where might of the frozen wastes and single minded fury may be a factor
+# Disable Gear Effects (Excludes weapons, trinkets and Tier set (set above))
+disable_gear_effects = True
 
 # Base Stat Modifications
 modify_current_stats = True
@@ -111,6 +115,7 @@ simc_dir = os.path.join(os.path.abspath(os.path.join(os.path.dirname( __file__ )
 data_dir = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "raw_data")
 output_dir = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "data_output")
 chart_output_dir = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "chart_output")
+weapon = ""
 
 # Find the primary stat of the profile
 def switch_primary():
@@ -219,6 +224,71 @@ def switch_primary():
                     return "strength"
                 case "protection":
                     return "strength"
+                
+def switch_weapon():
+    match sim_class:
+        case "death_knight":
+            match specilization:
+                case "blood":
+                    return "trainees_sword,id=73210"
+                case "frost":
+                    if( use_2h ):
+                        return "trainees_sword,id=73210"
+                    else:
+                        return "worn_axe,id=37\n off_hand=worn_axe,id=37"
+                case "unholy":
+                    return "trainees_sword,id=73210"
+        case "demon_hunter":
+            return "worn_axe,id=37\n off_hand=worn_axe,id=37"
+        case "druid":
+            return "farmers_broom,id=114980"
+        case "evoker":
+            return "farmers_broom,id=114980"
+        case "hunter":
+            match specilization:
+                case "beast_mastery":
+                    return "worn_shortbow,id=2504"
+                case "marksmanship":
+                    return "worn_shortbow,id=2504"
+                case "survival":
+                    return "farmers_broom,id=114980"
+        case "mage":
+            return "farmers_broom,id=114980"
+        case "monk":
+            return "farmers_broom,id=114980"
+        case "paladin":
+            match specilization:
+                case "holy":
+                    return "farmers_broom,id=114980"
+                case "protection":
+                    return "worn_axe,id=37"
+                case "retribution":
+                    return "trainees_sword,id=73210"
+        case "priest":
+            return "farmers_broom,id=114980"
+        case "rogue":
+            match specilization:
+                case "assassination":
+                    return "sharp_dirk,id=50057\n off_hand=sharp_dirk,id=50057"
+                case "outlaw":
+                    return "worn_shortsword,id=25\n off_hand=sharp_dirk,id=50057"
+                case "subtlety":
+                    return "sharp_dirk,id=50057\n off_hand=sharp_dirk,id=50057"
+        case "shaman":
+            return "farmers_broom,id=114980"
+        case "warlock":
+            return "farmers_broom,id=114980"
+        case "warrior":
+            match specilization:
+                case "arms":
+                    return "trainees_sword,id=73210"
+                case "fury":
+                    if( use_2h ):
+                        return "trainees_sword,id=73210"
+                    else:
+                        return "worn_axe,id=37\n off_hand=worn_axe,id=37"
+                case "protection":
+                    return "worn_axe,id=37"
 
 # Lists of elements to add to the simc profile
 sim_mod = []
@@ -273,6 +343,21 @@ with open(os.path.join(profile_dir, f"{sim_class}_{specilization}_input.simc"), 
         if( disable_trinekts ):
             profile_mod.append( "trinket1=\n" )
             profile_mod.append( "trinket2=\n" )
+        if( disable_gear_effects ):
+            profile_mod.append("head=\n")
+            profile_mod.append("neck=\n")
+            profile_mod.append("shoulder=\n")
+            profile_mod.append("back=\n")
+            profile_mod.append("chest=\n")
+            profile_mod.append("wrist=\n")
+            profile_mod.append("hands=\n")
+            profile_mod.append("waist=\n")
+            profile_mod.append("legs=\n")
+            profile_mod.append("feet=\n")
+            profile_mod.append("finger1=\n")
+            profile_mod.append("finger2=\n")
+        if( disable_weapon_effects ):
+            profile_mod.append(f"main_hand={switch_weapon()}\n")
         sim_profile.write("\n")
         for i in profile_mod:
             sim_profile.write(i)
@@ -513,6 +598,7 @@ def generate_matrix_data( data, matrix_stat, step, point, stat ):
     data[matrix_stat+' Rating'] = rating
     data['Average DPS per point'] = data['DPS per point'].mean()
     data['Average DPS'] = data[' DPS'].mean()
+    data['DPS % Increase'] = (data['DPS Change'].diff() / data['DPS Change'])*100
     csv_header = True
     csv_mode = 'w'
     if( point > 0 ):
