@@ -80,12 +80,12 @@ graph_primary = True
 
 # Matrix Sim Variables
 # Enabling any of these will disable the normal stat scaling sims! compute time would be far too long.
-sim_haste_matrix = False
-sim_crit_matrix = False
-sim_mastery_matrix = False
-sim_vers_matrix = False
-sim_primary_matrix = False
-generate_matrix_charts = False
+sim_haste_matrix = True
+sim_crit_matrix = True
+sim_mastery_matrix = True
+sim_vers_matrix = True
+sim_primary_matrix = True
+generate_matrix_charts = True
 # Enables or Disables the generation of these stats as "secondary" stats in the matrix.
 # e.g. disabling all but haste would generate charts for all enabled primary stats (options above), with as the haste secondary.
 # allows for mixing and matching for deeper exploration. 
@@ -606,7 +606,7 @@ def generate_matrix_data( data, matrix_stat, step, point, stat ):
         csv_header = False
         csv_mode = 'a'
     data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_{matrix_stat}_{stat}_mod.csv"), mode=csv_mode, header=csv_header, index=False)
-    new_data = pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_{fight_type_string}_mod.csv"))
+    new_data = pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_{matrix_stat}_{stat}_mod.csv"))
     new_data['Pct increase'] = ( new_data['Average DPS'].diff() / new_data['Average DPS'] ) * 100
     new_data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_{matrix_stat}_{stat}_mod.csv"), index=False)
 
