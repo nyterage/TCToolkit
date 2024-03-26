@@ -12,8 +12,8 @@ input_profile = "unh_aoe.simc" # This should be a bare profile, only character i
 sim_class = "death_knight"
 specilization = "unholy"
 fight_style = "Patchwerk" # Patchwerk, and DungeonSlice are the likely most useful for this
-desired_targets = 5 # Number of enemy targets to sim, DungeonSlice ignores this
-sim_duration = 60 # Duration of the sim in seconds
+desired_targets = 1 # Number of enemy targets to sim, DungeonSlice ignores this
+sim_duration = 300 # Duration of the sim in seconds
 tar_err = 0.05 # Sims target Error
 iter = 15000 # Max number of Iterations to run, will stop at this number if target error has not been reached
 pos = 1 # Plot only positive values from the current rating, set to 0 to generate both positive and negative values
@@ -51,7 +51,7 @@ temporary_enchants = "disabled"
 # Make sure you set this to true if you want to eliminate the influence of trinkets on the data!
 disable_trinekts = True
 disable_weapon_effects = True
-use_2h = False # Only applies to Warrior and FDK, where might of the frozen wastes and single minded fury may be a factor
+use_2h = True # Only applies to Warrior and FDK, where might of the frozen wastes and single minded fury may be a factor
 # Disable Gear Effects (Excludes weapons, trinkets and Tier set (set above))
 disable_gear_effects = True
 
@@ -80,10 +80,10 @@ graph_primary = True
 
 # Matrix Sim Variables
 # Enabling any of these will disable the normal stat scaling sims! compute time would be far too long.
-sim_haste_matrix = True
-sim_crit_matrix = True
-sim_mastery_matrix = True
-sim_vers_matrix = True
+sim_haste_matrix = False
+sim_crit_matrix = False
+sim_mastery_matrix = False
+sim_vers_matrix = False
 sim_primary_matrix = False
 generate_matrix_charts = False
 # Enables or Disables the generation of these stats as "secondary" stats in the matrix.
@@ -284,7 +284,7 @@ def switch_weapon():
                     return "trainees_sword,id=73210"
                 case "fury":
                     if( use_2h ):
-                        return "trainees_sword,id=73210"
+                        return "trainees_sword,id=73210\ off_hand=trainees_sword,id=73210"
                     else:
                         return "worn_axe,id=37\n off_hand=worn_axe,id=37"
                 case "protection":
@@ -605,10 +605,10 @@ def generate_matrix_data( data, matrix_stat, step, point, stat ):
     if( point > 0 ):
         csv_header = False
         csv_mode = 'a'
-    data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_{fight_type_string}_mod.csv"), mode=csv_mode, header=csv_header, index=False)
+    data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_{matrix_stat}_{stat}_mod.csv"), mode=csv_mode, header=csv_header, index=False)
     new_data = pd.read_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_{fight_type_string}_mod.csv"))
     new_data['Pct increase'] = ( new_data['Average DPS'].diff() / new_data['Average DPS'] ) * 100
-    new_data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{matrix_stat}_{stat}_{fight_type_string}_mod.csv"), index=False)
+    new_data.to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_{matrix_stat}_{stat}_mod.csv"), index=False)
 
 def add_data( data, stat ):
     if( graph_dps_per_point == True ):
