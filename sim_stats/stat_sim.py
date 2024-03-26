@@ -284,7 +284,7 @@ def switch_weapon():
                     return "trainees_sword,id=73210"
                 case "fury":
                     if( use_2h ):
-                        return "trainees_sword,id=73210\ off_hand=trainees_sword,id=73210"
+                        return "trainees_sword,id=73210\n off_hand=trainees_sword,id=73210"
                     else:
                         return "worn_axe,id=37\n off_hand=worn_axe,id=37"
                 case "protection":
@@ -618,10 +618,7 @@ def add_data( data, stat ):
     data.describe(include='all').to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{stat}_{fight_type_string}_data_info.csv"), index=True)
 
 def add_matrix_data( data, matrix_stat, stat ):
-    if( graph_dps_per_point == True ):
-        fig.add_trace(go.Scatter(x=data[f'{matrix_stat} Rating'], y=data['Average DPS per point'], mode=graph_style, name=stat))
-    if( graph_dps == True ):
-        fig.add_trace(go.Scatter(x=data[matrix_stat+' Rating'], y=data['Average DPS'], mode=graph_style, name=stat))
+    fig.add_trace(go.Scatter(x=data[f'{matrix_stat} Rating'], y=data['Pct increase'], mode=graph_style, name=stat))
     data.describe(include='all').to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_{matrix_stat}_{stat}_data_info.csv"), index=True)
 
 graph_type_string = ""
