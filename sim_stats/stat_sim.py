@@ -8,7 +8,7 @@ import platform
 from inputimeout import inputimeout, TimeoutOccurred
 
 # Input Variables
-input_profile = "unh_aoe.simc" # This should be a bare profile, only character info and gear
+input_profile = "unh_tst.simc" # This should be a bare profile, only character info and gear
 sim_class = "death_knight"
 specilization = "unholy"
 fight_style = "Patchwerk" # Patchwerk, and DungeonSlice are the likely most useful for this
@@ -666,7 +666,7 @@ def run_matrix_sim( matrix_stat, stat ):
 
 # Run the sim
 for i in sim_stats:
-    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}_{fight_type_string}_.csv"))):
+    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{i}_{fight_type_string}.csv"))):
         if( query_yes_no(f"Data already exists for {i}, would you like to run the sim anyway?", "yes") ):
             run_stat_sim(i)
         else:
