@@ -80,12 +80,12 @@ graph_primary = True
 
 # Matrix Sim Variables
 # Enabling any of these will disable the normal stat scaling sims! compute time would be far too long.
-sim_haste_matrix = True
-sim_crit_matrix = True
-sim_mastery_matrix = True
-sim_vers_matrix = True
-sim_primary_matrix = True
-generate_matrix_charts = True
+sim_haste_matrix = False
+sim_crit_matrix = False
+sim_mastery_matrix = False
+sim_vers_matrix = False
+sim_primary_matrix = False
+generate_matrix_charts = False
 # Enables or Disables the generation of these stats as "secondary" stats in the matrix.
 # e.g. disabling all but haste would generate charts for all enabled primary stats (options above), with as the haste secondary.
 # allows for mixing and matching for deeper exploration. 
