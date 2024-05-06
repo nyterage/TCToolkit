@@ -711,43 +711,45 @@ for q in primary_matrix_stats:
 
 if( generate_stat_charts ):
     primary = switch_primary()
-    for i in dont_sim_stats:
-        match i:
+    for s in dont_sim_stats:
+        match s:
             case "haste":
                 if( graph_haste ):
-                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}_mod.csv"))):
-                        add_data( get_old_modified_data(i), i )
+                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{s}_{fight_type_string}_mod.csv"))):
+                        print("Adding modified haste data")
+                        add_data( get_old_modified_data(s), s )
                     else:
-                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}.csv"))):
-                            generate_extra_data( get_old_data(i), i )
+                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{s}_{fight_type_string}.csv"))):
+                            generate_extra_data( get_old_data(s), s )
+                            print("Adding haste data")
             case "crit":
                 if( graph_crit ):
-                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}_mod.csv"))):
-                        add_data( get_old_modified_data(i), i )
+                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{s}_{fight_type_string}_mod.csv"))):
+                        add_data( get_old_modified_data(s), s )
                     else:
-                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}.csv"))):
-                            generate_extra_data( get_old_data(i), i )
+                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{s}_{fight_type_string}.csv"))):
+                            generate_extra_data( get_old_data(s), s )
             case "mastery":
                 if( graph_mastery ):
-                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}_mod.csv"))):
-                        add_data( get_old_modified_data(i), i )
+                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{s}_{fight_type_string}_mod.csv"))):
+                        add_data( get_old_modified_data(s), s )
                     else:
-                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}.csv"))):
-                            generate_extra_data( get_old_data(i), i )
+                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{s}_{fight_type_string}.csv"))):
+                            generate_extra_data( get_old_data(s), s )
             case "versatility":
                 if( graph_vers ):
-                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}_mod.csv"))):
-                        add_data( get_old_modified_data(i), i )
+                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{s}_{fight_type_string}_mod.csv"))):
+                        add_data( get_old_modified_data(s), s )
                     else:
-                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}.csv"))):
-                            generate_extra_data( get_old_data(i), i )
+                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{s}_{fight_type_string}.csv"))):
+                            generate_extra_data( get_old_data(s), s )
             case primary:
                 if( graph_primary ):
-                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}_mod.csv"))):
-                        add_data( get_old_modified_data(i), i )
+                    if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{s}_{fight_type_string}_mod.csv"))):
+                        add_data( get_old_modified_data(s), s )
                     else:
-                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{fight_type_string}_{i}.csv"))):
-                            generate_extra_data( get_old_data(i), i )
+                        if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{s}_{fight_type_string}.csv"))):
+                            generate_extra_data( get_old_data(s), s )
     generate_chart()
 
 if( generate_matrix_charts ):
