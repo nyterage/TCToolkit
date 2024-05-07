@@ -76,7 +76,7 @@ graph_haste = True
 graph_crit = True
 graph_mastery = True
 graph_vers = True
-graph_primary = True
+graph_primary = False
 
 # Matrix Sim Variables
 # Enabling any of these will disable the normal stat scaling sims! compute time would be far too long.
@@ -716,12 +716,10 @@ if( generate_stat_charts ):
             case "haste":
                 if( graph_haste ):
                     if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{s}_{fight_type_string}_mod.csv"))):
-                        print("Adding modified haste data")
                         add_data( get_old_modified_data(s), s )
                     else:
                         if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{s}_{fight_type_string}.csv"))):
                             generate_extra_data( get_old_data(s), s )
-                            print("Adding haste data")
             case "crit":
                 if( graph_crit ):
                     if( os.path.isfile(os.path.join(data_dir, f"{sim_class}_{specilization}_{s}_{fight_type_string}_mod.csv"))):
