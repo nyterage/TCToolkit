@@ -17,7 +17,7 @@ sim_duration = 300 # Duration of the sim in seconds
 tar_err = 0.05 # Sims target Error
 iter = 15000 # Max number of Iterations to run, will stop at this number if target error has not been reached
 pos = 1 # Plot only positive values from the current rating, set to 0 to generate both positive and negative values
-plot_step = 10 # Difference in Rating between each plot point
+plot_step = 50 # Difference in Rating between each plot point
 plot_points = 1000 # Number of plot points to generate
 rolling_avg = 18 # Rolling average for DPS per point, set to 1 to disable rolling average
 report_details = 1
@@ -37,9 +37,10 @@ matrix_iter = 15000 # Max number of Iterations to run for the matrix sims, will 
 # Profile Modifications
 modify_base_profile = True # Set to False if you dont want to modify the base profile with any of the values below
 # Set to 1 to enable that tier set bonus, set to 0 to disable it
-tier_set_bonus_2pc = 1
-tier_set_bonus_4pc = 1
-tier_set_number = 31 # Set the tier set number, the current tier at the time of writing is Amirdrassil, which is tier_set_number = 31
+tier_set_bonus_2pc = 0
+tier_set_bonus_4pc = 0
+tier_set_prefix = "thewarwithin" # Prefix for the tier set bonus, e.g. "thewarwithin" for the war within set
+tier_set_season = "1"
 # If you want to remove the influence of these things on the sim, make sure they are set to "disabled"!
 # Otherwise, syntax is the name in snake_case followed by the rank of the item, e.g. potion = "elemental_potion_of_ultimate_power_3"
 # if the item has no rank, omit the number, e.g. food = "sizzling_seafood_medley"
@@ -69,7 +70,7 @@ sim_haste = True
 sim_crit = True
 sim_mastery = True
 sim_vers = True
-sim_primary = True
+sim_primary = False
 generate_stat_charts = True
 # These Only Apply to basic stat sims, not matrix sims
 graph_haste = True
@@ -338,8 +339,8 @@ with open(os.path.join(profile_dir, f"{sim_class}_{specilization}_input.simc"), 
         profile_mod.append("flask="+flask+"\n")
         profile_mod.append("augmentation="+augmentation+"\n")
         profile_mod.append("temporary_enchant="+temporary_enchants+"\n")
-        profile_mod.append("set_bonus=tier"+str(tier_set_number)+"_2pc="+str(tier_set_bonus_2pc)+"\n")
-        profile_mod.append("set_bonus=tier"+str(tier_set_number)+"_4pc="+str(tier_set_bonus_4pc)+"\n")
+        profile_mod.append("set_bonus="+str(tier_set_prefix)+"_season_"+str(tier_set_season)+"_2pc="+str(tier_set_bonus_2pc)+"\n")
+        profile_mod.append("set_bonus="+str(tier_set_prefix)+"_season_"+str(tier_set_season)+"_4pc="+str(tier_set_bonus_4pc)+"\n")
         if( disable_trinekts ):
             profile_mod.append( "trinket1=\n" )
             profile_mod.append( "trinket2=\n" )
