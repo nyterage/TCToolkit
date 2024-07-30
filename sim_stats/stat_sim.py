@@ -28,14 +28,14 @@ optimal_raid = 1
 # To enable matrix sims, set the variable for the stat you want to scale up to True, this will then generate the dps/point value for all other stats #
 # Warning, matrix sims can take an extremely long time to run, especially if you have multiple stats enabled                                         #
 #----------------------------------------------------------------------------------------------------------------------------------------------------#
-matrix_step = 300 # Difference in Rating between each matrix point, applies to the main matrix stat (option below)
-matrix_points = 34 # Number of points to generate in the matrix, applies to the main matrix stat (option below)
+matrix_step = 500 # Difference in Rating between each matrix point, applies to the main matrix stat (option below)
+matrix_points = 100 # Number of points to generate in the matrix, applies to the main matrix stat (option below)
 matrix_secondary_step = 100 # Difference in Rating between each matrix point, applies to the secondary matrix stats
 matrix_secondary_points = 5 # Number of data points to generate in the matrix, applies to the secondary matrix stats. Will be averaged, higher numbers will increase accuracy but also increase compute time
 matrix_iter = 15000 # Max number of Iterations to run for the matrix sims, will stop at this number if target error has not been reached
 
 # Profile Modifications
-modify_base_profile = True # Set to False if you dont want to modify the base profile with any of the values below
+modify_base_profile = True # Set to False if you dont want to modify the base profile with any of the values below 
 # Set to 1 to enable that tier set bonus, set to 0 to disable it
 tier_set_bonus_2pc = 0
 tier_set_bonus_4pc = 0
@@ -66,10 +66,10 @@ base_versatility_rating = 0 # Set to 0 to set versatility in the input ptofile t
 base_primary_rating = 0 # Set to 0 to set primary stat in the input ptofile to 0, otherwise set whatever value you wish
 
 # Stat Sim Variables
-sim_haste = True
-sim_crit = True
-sim_mastery = True
-sim_vers = True
+sim_haste = False
+sim_crit = False
+sim_mastery = False
+sim_vers = False
 sim_primary = False
 generate_stat_charts = True
 # These Only Apply to basic stat sims, not matrix sims
@@ -86,16 +86,16 @@ sim_crit_matrix = False
 sim_mastery_matrix = False
 sim_vers_matrix = False
 sim_primary_matrix = False
-generate_matrix_charts = False
+generate_matrix_charts = True
 # Enables or Disables the generation of these stats as "secondary" stats in the matrix.
-# e.g. disabling all but haste would generate charts for all enabled primary stats (options above), with as the haste secondary.
+# e.g. disabling all but haste would generate charts for all enabled primary stats (options above), with hastes value plotted against the primary stats rating.
 # allows for mixing and matching for deeper exploration. 
 # Will also enable or disable them in chart generation, no matter if the sim is run or youre just generating charts.
-gen_haste_secondary_matrix = True
-gen_crit_secondary_matrix = True
-gen_mastery_secondary_matrix = True
-gen_vers_secondary_matrix = True
-gen_primary_secondary_matrix = True
+gen_haste_secondary_matrix = False
+gen_crit_secondary_matrix = False
+gen_mastery_secondary_matrix = False
+gen_vers_secondary_matrix = False
+gen_primary_secondary_matrix = False
 
 # Graph Variables
 graph_width = 2000 # Width of the graph in pixels
@@ -106,6 +106,9 @@ graph_style = "lines+markers"
 # Only One of these two should be enabled at any one point in time!
 graph_dps_per_point = True # Probably the only useful graph
 graph_dps = False # Plots DPS vs Rating, same thing youd get in the simc html output, but bigger!
+# Only One of these two should be enabled at any one point in time!
+graph_matrix_dps_per_point = True
+graph_matrix_pct_increase = False
 
 #----------------------------------------------------------------------------------------#
 # Code Starts Here, dont touch anything below this line unless you know what youre doing #
@@ -234,7 +237,7 @@ def switch_weapon():
                     return "trainees_sword,id=73210"
                 case "frost":
                     if( use_2h ):
-                        return "trainees_sword,id=73210"
+                        return "trainees_sword,id=73210 \n off_hand="
                     else:
                         return "worn_axe,id=37\n off_hand=worn_axe,id=37"
                 case "unholy":
@@ -619,7 +622,10 @@ def add_data( data, stat ):
     data.describe(include='all').to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{stat}_{fight_type_string}_data_info.csv"), index=True)
 
 def add_matrix_data( data, matrix_stat, stat ):
-    fig.add_trace(go.Scatter(x=data[f'{matrix_stat} Rating'], y=data['Pct increase'], mode=graph_style, name=stat))
+    if( graph_matrix_dps_per_point == True ):
+        fig.add_trace(go.Scatter(x=data[f'{matrix_stat} Rating'], y=data['Average DPS per point'], mode=graph_style, name=stat))
+    if( graph_matrix_pct_increase == True ):
+        fig.add_trace(go.Scatter(x=data[f'{matrix_stat} Rating'], y=data['Pct increase'], mode=graph_style, name=stat))
     data.describe(include='all').to_csv(os.path.join(output_dir, f"{sim_class}_{specilization}_{fight_type_string}_{matrix_stat}_{stat}_data_info.csv"), index=True)
 
 graph_type_string = ""
@@ -635,9 +641,15 @@ def generate_chart():
         fig.show()
     fig.data = []
 
+matrix_graph_type_string = ""
+if( graph_matrix_dps_per_point == True ):
+    matrix_graph_type_string = "DPS per point"
+if( graph_matrix_pct_increase == True ):
+    matrix_graph_type_string = "Percent Change"
+
 def generate_matrix_chart( stat ):
-    fig.update_layout(title=f'{sim_duration} second {fight_type_string} - {specilization} {sim_class} - {graph_type_string} vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title=f'{graph_type_string}')
-    fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_{fight_type_string}_{graph_type_string}.png'))
+    fig.update_layout(title=f'{sim_duration} second {fight_type_string} - {specilization} {sim_class} - {matrix_graph_type_string} vs {stat} Rating', xaxis_title=f'{stat} Rating', yaxis_title=f'{matrix_graph_type_string}')
+    fig.write_image(os.path.join(chart_output_dir, f'{sim_class}_{specilization}_{stat}_matrix_{fight_type_string}_{matrix_graph_type_string}.png'))
     if( graph_open ):
         fig.show()
     fig.data = []
