@@ -18,9 +18,9 @@ vers_rating = 699
 
 # Set the background color of the chart, wowhead grey is #242424
 background_color = '#242424'
-font_size = 50
-graph_width = 2300
-graph_height = 2000
+font_size = 36
+graph_width = 1150
+graph_height = 1000
 
 # Create the variable with a sensable default value so even if the class is not found, it will still work
 class_color = '#C41E3A'
@@ -67,10 +67,10 @@ fig.update_layout(
   width=graph_width,
   height=graph_height,
   margin=dict(
-    l=200,
+    l=150,
     r=200,
-    b=200,
-    t=200
+    b=75,
+    t=75
   ),
   polar=dict(
     radialaxis=dict(
@@ -82,13 +82,14 @@ fig.update_layout(
     ),
     angularaxis=dict(
       visible=True,
+      rotation=90,
       tickfont=dict(
         color='white',
-        size=font_size
+        size=font_size,
       )
     ),
     bgcolor='rgba(255,255,255,0.2)',
-    gridshape=shape
+    gridshape=shape,
   ),
   showlegend=False
 )
