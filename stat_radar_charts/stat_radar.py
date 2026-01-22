@@ -5,53 +5,41 @@ import sys
 # Sets the color of the chart data
 wow_class = "death_knight"
 # Only used for file name outputs, makes it easier to find the output later
-specilization = "unholy"
+specilization = "frost"
 
 # Circular and Linear are the only two options for shape
-shape='circular'
+shape='linear'
 
 # Set your ratings here
-crit_rating = 1586
-haste_rating = 21666
-mastery_rating = 23076
-vers_rating = 699
+crit_rating = 17278
+haste_rating = 19522
+mastery_rating = 20994
+vers_rating = 0
 
 # Set the background color of the chart, wowhead grey is #242424
-background_color = '#242424'
+background_color = '#181818'
 font_size = 36
 graph_width = 1150
 graph_height = 1000
 
-# Create the variable with a sensable default value so even if the class is not found, it will still work
-class_color = '#C41E3A'
+class_colors = {
+    "death_knight": "#C41E3A",
+    "druid": "#FF7C0A",
+    "demon_hunter": "#A330C9",
+    "evoker": "#33937F",
+    "hunter": "#AAD372",
+    "mage": "#3FC7EB",
+    "monk": "#00FF98",
+    "paladin": "#F58CBA",
+    "priest": "#FFFFFF",
+    "rogue": "#FFF468",
+    "shaman": "#0070DE",
+    "warlock": "#8788EE",
+    "warrior": "#C69B6D"
+}
 
-match( wow_class ):
-  case "death_knight":
-    class_color = '#C41E3A'
-  case "druid":
-    class_color = '#FF7C0A'
-  case "demon_hunter":
-    class_color = '#A330C9'
-  case "evoker":
-    class_color = '#33937F'
-  case "hunter":
-    class_color = '#AAD372'
-  case "mage":
-    class_color = '#3FC7EB'
-  case "monk":
-    class_color = '#00FF98'
-  case "paladin":
-    class_color = '#F58CBA'
-  case "priest":
-    class_color = '#FFFFFF'
-  case "rogue":
-    class_color = '#FFF468'
-  case "shaman":
-    class_color = '#0070DE'
-  case "warlock":
-    class_color = '#8788EE'
-  case "warrior":
-    class_color = '#C69B6D'
+default = "#000000"
+class_color = class_colors.get(wow_class, default)
 
 fig = go.Figure(data=go.Scatterpolar(
   r=[crit_rating,haste_rating,mastery_rating,vers_rating],
